@@ -1,15 +1,34 @@
 #include "uart.h"
-
+#include "../common.h"
 
 unsigned char  xdata RX_Buffer[RX_BUF_MAX]={0};
 bit Flag_Receive_OK=0, Flag_Send_Busy=0;
 
 void Uart_Init(unsigned char baud){
-	TMOD |= 0x20; // 设置定时器模式2，8位自动重装定时器
-	SCON=0x50; // 设置串口模式1，0b01010000 从高位开始 01是串口模式1, 0是多机位否，1 是REN允许接收
-	 PCON=0x80;// 加倍，这里不需要加倍
-	TH1 = baud;
-	TL1 = baud;
+
+	#if hz==110592
+		TMOD |= 0x20; // 设置定时器模式2，8位自动重装定时器
+		SCON=0x50; // 设置串口模式1，0b01010000 从高位开始 01是串口模式1, 0是多机位否，1 是REN允许接收
+		PCON=0x80;// 加倍
+		TH1 = baud;
+		TL1 = baud;
+	#elif hz==12
+		/*
+		// 12MHz下4800（加倍后4800）
+		TMOD |= 0x20; // 设置定时器模式2，8位自动重装定时器
+		SCON=0x50; // 设置串口模式1，0b01010000 从高位开始 01是串口模式1, 0是多机位否，1 是REN允许接收
+		PCON=0x80;// 加倍
+		TH1 = 0xF3;
+		TL1 = 0xF3;
+	  */
+		
+		// 62500 
+		TMOD |= 0x20; // 设置定时器模式2，8位自动重装定时器
+		SCON=0x50; // 设置串口模式1，0b01010000 从高位开始 01是串口模式1, 0是多机位否，1 是REN允许接收
+		PCON=0x80;// 加倍
+		TH1 = 0xFF;
+		TL1 = 0xFF;
+	#endif
 	
 	ES = 1; // 打开串口中断
 	EA = 1; // 打开总中断

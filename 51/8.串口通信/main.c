@@ -6,7 +6,7 @@
 void main(){
 	
 	int i=0;
-	Uart_Init(0xFA);
+	Uart_Init(0xFA); // 4800 ±¶Æµ=9600
 	delay1ms(500);
 	printf("ÄãºÃ");
 	for(;i<RX_BUF_MAX; i++){
