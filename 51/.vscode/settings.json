@@ -6,5 +6,6 @@
         "common.h": "c",
         "uart.h": "c",
         "iic.h": "c"
-    }
+    },
+    "files.encoding": "gb2312"
 }
