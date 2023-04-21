@@ -126,9 +126,32 @@ u8 iic_write_mem(u8 devAddr, u8 addr, u8 *pData, u16 len){
     if(iic_wait_ack())
         return 1;
     iic_write_byte(addr);
+    if(iic_wait_ack())
+        return 1;
+    while(len--){
+        iic_write_byte(*pData++);
+        if(iic_wait_ack())
+        return 1;
+    }
+
+    iic_stop();
+    return 0;
 }
 
-u8 iic_read_mem(u8 devAddr, u8 addr, u8 *pBuf, u16 len); // 对指定器件的寄存器值的读取
+u8 iic_read_mem(u8 devAddr, u8 addr, u8 *pBuf, u16 len){
+    iic_start();
+    iic_write_byte(devAddr<<1);
+    if(iic_wait_ack())
+        return 1;
+    iic_write_byte(addr);
+    if(iic_wait_ack())
+        return 1;
+
+    iic_start();
+    iic_write_byte(devAddr<<1 | 1);
+    if(iic_wait_ack())
+        return 1;
+}
 
 u8 iic_write_bits(u8 devAddr, u8 addr, u8 start, u8 len, u8 data); // 写入8位寄存器的位（1或多位）
 u8 iic_read_bits(u8 devAddr, u8 addr, u8 start, u8 *pBuf); // 读取多位
