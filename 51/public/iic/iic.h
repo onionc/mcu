@@ -2,10 +2,11 @@
 #define _IIC_H
 
 #include <regx52.h>
+#include "../public/common.h"
 
 // IIC 控制引脚
-sbit I2C_SCL=P2^1;
-sbit I2C_SDA=P2^0;
+sbit IIC_SCL=P2^1;
+sbit IIC_SDA=P2^0;
 
 void iic_delay(); // iic的间隔
 
@@ -21,8 +22,8 @@ u8 iic_read_byte(u8 ack); // 读取一个字节
 
 u8 iic_write_mem(u8 devAddr, u8 addr, u8 *pData, u16 len); // 对指定器件的寄存器值的写入
 u8 iic_read_mem(u8 devAddr, u8 addr, u8 *pBuf, u16 len); // 对指定器件的寄存器值的读取
-u8 iic_write_bits(u8 devAddr, u8 addr, u8 start, u8 len, u8 data); // 写入8位寄存器的位（1或多位）
-u8 iic_read_bits(u8 devAddr, u8 addr, u8 start, u8 *pBuf); // 读取多位
+u8 iic_write_bits(u8 devAddr, u8 addr, u8 start, u8 len, u8 ); // 写入8位寄存器的位（1或多位）
+u8 iic_read_bits(u8 devAddr, u8 addr, u8 start, u8 len, u8 *pBuf); // 读取多位
 
 
 
