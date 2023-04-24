@@ -119,7 +119,6 @@ u8 mpu_get_acc(short *ax, short *ay, short *az){
 u8 mpu_get_gyro(short *gx, short *gy, short *gz){
     u8 buf[6], r;
     r = mpu_read_len(MPU_GYRO_XOUTH_REG, 6, buf);
-    printf("%x %x %x %x %x %x\n", buf[0], buf[1], buf[2], buf[3], buf[4], buf[5]);
     if(r==0){
         *gx = (u16)buf[0]<<8 | buf[1];
         *gy = (u16)buf[2]<<8 | buf[3];
@@ -142,7 +141,7 @@ u8 mpu_init(){
 	mpu_write_byte(MPU_FIFO_EN_REG, 0X00); //关闭FIFO
 	mpu_write_byte(MPU_INTBP_CFG_REG, 0X80); //INT引脚低电平有效
 	r = mpu_read_byte(MPU_DEVICE_ID_REG);
-    printf("mpu id=%bd", r);
+    
 	if (r == MPU_ADDR)//器件ID正确
 	{
 		mpu_write_byte(MPU_PWR_MGMT1_REG, 0X01); //设置CLKSEL,PLL X轴为参考

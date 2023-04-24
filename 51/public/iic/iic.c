@@ -94,6 +94,7 @@ void iic_write_byte(u8 txd){
  */
 u8 iic_read_byte(u8 ack){
     u8 i=0, r=0;
+    IIC_SDA = 1;
     for(i=0; i<8; i++){
         IIC_SCL = 0;
         iic_delay();
