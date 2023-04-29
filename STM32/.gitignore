@@ -46,3 +46,4 @@ JLinkLog.txt
 Listings/
 Objects/
 *.uvoptx
+DebugConfig/
