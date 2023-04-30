@@ -26,6 +26,8 @@ void LED_GPIO_Config(){
     gpioInitStruct.GPIO_Pin = LED2_PIN;
     GPIO_Init(LED1_GPIO_PORT, &gpioInitStruct);
     
-    
+    // ≥ı ºªØ led3
+    gpioInitStruct.GPIO_Pin = LED3_PIN;
+    GPIO_Init(LED1_GPIO_PORT, &gpioInitStruct);
    
 }
