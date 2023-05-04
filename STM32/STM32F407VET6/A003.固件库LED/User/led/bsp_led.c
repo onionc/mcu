@@ -25,7 +25,9 @@ void LED_GPIO_Config(){
     // 初始化 led2
     gpioInitStruct.GPIO_Pin = LED2_PIN;
     GPIO_Init(LED1_GPIO_PORT, &gpioInitStruct);
-    
-    
+        
+    // 初始化 led3
+    gpioInitStruct.GPIO_Pin = LED3_PIN;
+    GPIO_Init(LED1_GPIO_PORT, &gpioInitStruct);
    
 }
