@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>中断</TargetName>
+      <TargetName>定时器</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <pCCUsed>5060960::V5.06 update 7 (build 960)::.\ARMCC</pCCUsed>
@@ -792,9 +792,9 @@
               <FilePath>..\..\User\led\bsp_led.c</FilePath>
             </File>
             <File>
-              <FileName>bsp_exti_key.c</FileName>
+              <FileName>bsp_systick.c</FileName>
               <FileType>1</FileType>
-              <FilePath>..\..\User\key\bsp_exti_key.c</FilePath>
+              <FilePath>..\..\User\systick\bsp_systick.c</FilePath>
             </File>
           </Files>
         </Group>

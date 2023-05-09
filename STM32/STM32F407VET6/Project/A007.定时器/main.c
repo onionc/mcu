@@ -1,19 +1,17 @@
 
 #include "stm32f4xx.h"
 #include "./led/bsp_led.h"
-#include "./key/bsp_exti_key.h"
+#include "./systick/bsp_systick.h"
 
-void delay(__IO uint32_t count){
+void delay(vu32 count){
     for(; count!=0; count--);
 }
 
-void KEY1_IRQHandler(void){
-    // 确认产生了中断
-    if(EXTI_GetITStatus(KEY1_INT_EXTI_LINE) != RESET){
-        LED1_TOGGLE;
-        
-        // 清除中断标志位
-        EXTI_ClearITPendingBit(KEY1_INT_EXTI_LINE);
+// 系统定时器中断服务函数定义在项目中，不影响工程的stm32f4xx_it.c
+void SysTick_Handler(void)
+{
+    if(TimingDelay != 0){ 
+        TimingDelay--;
     }
 }
 
@@ -27,12 +25,18 @@ int main(){
     LED2_OFF;
     LED3_OFF;
     
-    // 初始化EXTI中断
-    EXTI_Key_Cfg();
+    
+    // 配置 SysTick
+    if(SysTick_Init()==ERROR){
+        LED1_ON; LED2_ON; LED3_ON;
+        return 1;
+    }
+
 
 
     while(1){
-        
+        Delay_10us(100000); // 100000 * 10us = 1000ms
+        LED1_TOGGLE;
     }
     
     return 0;
