@@ -6,7 +6,6 @@
  * 2. 初始化GPIO，并将GPIO复用到USART上；
  * 3. 配置USART参数；
  * 5. 使能USART；
- * 6. 在USART接收中断服务函数实现数据接收和发送。
  */
 void Usart_Cfg(uint32_t baudrate){
     GPIO_InitTypeDef gpioInit;
