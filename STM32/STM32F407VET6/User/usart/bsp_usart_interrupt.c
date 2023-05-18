@@ -1,10 +1,42 @@
-#include "./usart/bsp_usart.h"
+#include "./usart/bsp_usart_interrupt.h"
+/**
+ * @brief 配置嵌套向量中断控制器 NVIC
+ * 
+ */
+static void NVIC_Cfg(void){
+    NVIC_InitTypeDef nvicInit;
+    
+    // 配置NVIC优先级分组为1(1位主优先级，3位子优先级)
+    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1); // 只能有一次调用
+    
+    // 配置中断源为USART1
+    nvicInit.NVIC_IRQChannel = USARTx_IRQ;
+    // 配置主优先级（抢占优先级）
+    nvicInit.NVIC_IRQChannelPreemptionPriority = 1;
+    // 配置子优先级
+    nvicInit.NVIC_IRQChannelSubPriority = 1;
+    // 使能中断
+    nvicInit.NVIC_IRQChannelCmd = ENABLE;
+    // 初始化
+    NVIC_Init(&nvicInit);
+}
+
+// 中断处理函数
+u8 RxFlag=0;
+u8 chTemp=0;
+void USARTx_IRQHandler(void){
+    if(USART_GetITStatus(USARTx, USART_IT_RXNE)!=RESET){
+        RxFlag = 1;
+        chTemp = USART_ReceiveData(USARTx);
+    }
+}
 
 /**
  * 串口配置函数
  * 1. 使能RX和TX引脚GPIO时钟和USART时钟；
  * 2. 初始化GPIO，并将GPIO复用到USART上；
  * 3. 配置USART参数；
+ * 4. 配置中断控制器并使能USART接收中断；
  * 5. 使能USART；
  * 6. 在USART接收中断服务函数实现数据接收和发送。
  */
@@ -39,6 +71,10 @@ void Usart_Cfg(uint32_t baudrate){
     usartInit.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     usartInit.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
     USART_Init(USARTx, &usartInit);
+    
+    // 4. 配置中断控制器并使能USART接收中断；
+    NVIC_Cfg();
+    USART_ITConfig(USARTx, USART_IT_RXNE, ENABLE);
     
     // 5. 使能USART；
     USART_Cmd(USARTx, ENABLE);

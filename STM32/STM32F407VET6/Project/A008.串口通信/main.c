@@ -1,7 +1,37 @@
-
+// 1.手动接收处理
 #include "stm32f4xx.h"
 #include "./led/bsp_led.h"
 #include "./usart/bsp_usart.h"
+
+int main(){
+    char chTemp;
+    u8 rbuf[256];
+    
+    // 初始化usart
+    Usart_Cfg(9600);
+    
+    printf("初始化成功");
+
+
+    while(1){
+        //直接接收数据，不使用中断源接收
+        
+        if(scanf("%s", rbuf)){
+            printf("%s", rbuf);
+        }
+        
+        //chTemp = getchar();
+        //printf("%c",chTemp);
+    }
+    
+    return 0;
+}
+
+/*
+// 2.使用中断接收处理
+#include "stm32f4xx.h"
+#include "./led/bsp_led.h"
+#include "./usart/bsp_usart_interrupt.h"
 
 
 
@@ -36,12 +66,14 @@ int main(){
         }
         
         
-        /* 
-        //直接接收数据，不使用中断的时候（4. 配置中断控制器并使能USART接收中断；）使用，但是好像丢数，暂不做深究 
-        chTemp = getchar();
-        printf("-%c",chTemp);
-        */
+       
     }
     
     return 0;
 }
+*/
+
+
+ 
+
+        

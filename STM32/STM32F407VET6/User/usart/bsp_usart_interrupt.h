@@ -26,11 +26,18 @@
 #define USARTx_TX_AF        GPIO_AF_USART1
 #define USARTx_TX_SOURCE    GPIO_PinSource9
 
+#define USARTx_IRQHandler   USART1_IRQHandler
+#define USARTx_IRQ          USART1_IRQn
+
 // 串口配置函数
 void Usart_Cfg(u32 baudrate);
 // 发送一个字符
 static void Usart_SendByte(USART_TypeDef* pUsart, u8 ch);
 // 发送字符串函数, len==0时则发送str字符串（\0结尾）
 void Usart_SendStr(USART_TypeDef* pUsart, u8 *str, u32 len);
+
+// 标志位
+extern u8 RxFlag;
+extern u8 chTemp;
 
 #endif
