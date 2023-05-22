@@ -1,5 +1,5 @@
 #include "./i2c/bsp_i2c_eeprom_h.h"
-static __IO u32 I2CTimeout = 0;
+
 
 // I2C gpio 配置 
 static void I2C_GPIO_Cfg(void){
@@ -61,6 +61,24 @@ static ErrorStatus I2C_TIMEOUT_MSG(u8 errorCode){
 }
 
 /**
+ * @brief 检测事件
+ * 
+ * @param eventState 事件
+ * @return ErrorStatus
+ */
+ErrorStatus CheckEvent(uint32_t eventState, uint32_t errorCode){
+    // 超时时间赋值
+    __IO u32 timeout = I2CT_FLAG_TIMEOUT;
+    
+    // 检测事件并清除标志
+    while(!I2C_CheckEvent(EEPROM_I2C, eventState)){
+        if((timeout--)==0) return I2C_TIMEOUT_MSG(errorCode);
+    }
+    
+    return SUCCESS;
+}
+
+/**
  * @brief 写一个字节到EEPROM
  * 
  * @param pBuf 缓冲区指针
@@ -71,11 +89,14 @@ ErrorStatus I2C_EE_WriteByte(u8 *pBuf, u8 writeAddr){
     // 起始信号
     I2C_GenerateSTART(EEPROM_I2C, ENABLE);
     
-    // 超时时间赋值
-    I2CTimeout = I2CT_FLAG_TIMEOUT;
-    while(!I2C_CheckEvent(EEPROM_I2C, I2C_EVENT_MASTER_MODE_SELECT)){
-        if(I2CTimeout--<=0) return I2C_TIMEOUT_MSG(0);
+    // 判断 EV5 事件，起始位发送完成
+    if(CheckEvent(I2C_EVENT_MASTER_MODE_SELECT, 0)==ERROR){
+        return ERROR;
     }
+    
+    // 发送 EEPROM 设备地址
+    I2C_Send7bitAddress(EEPROM_I2C, 0);
+    
     
     
     // 停止信号

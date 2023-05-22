@@ -44,7 +44,4 @@ void I2C_EE_INIT(void);
 
 
 
-// ³¬Ê±Î»
-static __IO u32 I2CTimeout;
-
 #endif
