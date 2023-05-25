@@ -8,7 +8,7 @@
 #define I2C_Speed       400000
 
 // STM32的I2C地址，自定义
-#define I2C_OWN_ADDR    0x1A
+#define I2C_OWN_ADDR    0x5A
 
 // EEPROM 地址
 #define EEPROM_ADDR     0xA0
@@ -39,6 +39,7 @@
 #define ErrCodeEv8_Addr     3 // 写入地址发送错误
 #define ErrCodeEv8_Data     4 // 数据写入错误
 #define ErrCodeBusy         5 // 总线忙
+#define ErrCodeRecv         6 // 接收数据超时
 
 
 
@@ -59,15 +60,15 @@ ErrorStatus CheckEvent(uint32_t eventState, uint32_t errorCode);
 ErrorStatus I2C_EE_WaitEepromStandbyState(void);
 
 
-/* 写数据 */
+
 /**
  * @brief 写一个字节到EEPROM
  * 
- * @param pBuf 缓冲区指针
  * @param writeAddr 写地址
+ * @param pBuf 缓冲区指针
  * @return ErrorStatus 
  */
-ErrorStatus I2C_EE_WriteByte(u8 *pBuf, u8 writeAddr);
+ErrorStatus I2C_EE_WriteByte(u8 writeAddr, u8 *pBuf);
 
 /**
  * @brief 写多个字节
@@ -82,8 +83,15 @@ ErrorStatus I2C_EE_WriteBytes(u8 *pBuf, u8 writeAddr, u16 len);
 // 在页内写多个字节以及通过页快速写多个字节 略
 
 
-// 读取数据
-ErrorStatus I2C_EE_ReadBytes();
+/**
+ * @brief 读取数据
+ * 
+ * @param readAddr 读取数据的地址
+ * @param pBuf 接收数据的缓冲区指针
+ * @param len 读取的字节数
+ * @return ErrorStatus 
+ */
+ErrorStatus I2C_EE_ReadBytes(u8 readAddr, u8 *pBuf, u16 len);
 
 
 
