@@ -68,7 +68,7 @@ ErrorStatus I2C_EE_WaitEepromStandbyState(void);
  * @param pBuf 缓冲区指针
  * @return ErrorStatus 
  */
-ErrorStatus I2C_EE_WriteByte(u8 writeAddr, u8 *pBuf);
+ErrorStatus I2C_EE_WriteByte(u16 writeAddr, u8 *pBuf);
 
 /**
  * @brief 写多个字节
@@ -78,7 +78,7 @@ ErrorStatus I2C_EE_WriteByte(u8 writeAddr, u8 *pBuf);
  * @param len 写入的字节数
  * @return ErrorStatus 
  */
-ErrorStatus I2C_EE_WriteBytes(u8 *pBuf, u8 writeAddr, u16 len);
+ErrorStatus I2C_EE_WriteBytes(u8 *pBuf, u16 writeAddr, u16 len);
 
 // 在页内写多个字节以及通过页快速写多个字节 略
 

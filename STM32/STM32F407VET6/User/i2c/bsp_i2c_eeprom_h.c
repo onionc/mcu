@@ -88,7 +88,7 @@ ErrorStatus CheckEvent(uint32_t eventState, uint32_t errorCode){
  * @param pBuf 缓冲区指针
  * @return ErrorStatus 
  */
-ErrorStatus I2C_EE_WriteByte(u8 writeAddr, u8 *pBuf){
+ErrorStatus I2C_EE_WriteByte(u16 writeAddr, u8 *pBuf){
     
     // 起始信号
     I2C_GenerateSTART(EEPROM_I2C, ENABLE);
@@ -229,7 +229,7 @@ ErrorStatus I2C_EE_WaitEepromStandbyState(void){
  * @return ErrorStatus 
  */
 
-ErrorStatus I2C_EE_WriteBytes(u8 *pBuf, u8 writeAddr, u16 len){
+ErrorStatus I2C_EE_WriteBytes(u8 *pBuf, u16 writeAddr, u16 len){
     while(len-->0){
         // 等待 EEPROM 准备完毕，每写一个字节调用一次
         if(I2C_EE_WaitEepromStandbyState()==ERROR){
@@ -285,14 +285,14 @@ ErrorStatus I2C_EE_ReadBytes(u8 readAddr, u8 *pBuf, u16 len){
     if(CheckEvent(I2C_EVENT_MASTER_MODE_SELECT, ErrCodeEv5)==ERROR){
         return ERROR;
     }
-    
+
     // 发送 EEPROM 设备地址
     I2C_Send7bitAddress(EEPROM_I2C, EEPROM_ADDR, I2C_Direction_Receiver); // #3 参数代表方向，这次为读
-    // 判断 EV6 事件，地址发送完成
-    if(CheckEvent(I2C_EVENT_MASTER_TRANSMITTER_MODE_SELECTED, ErrCodeEv6)==ERROR){
+    // 判断 EV6 （的接收）事件，地址发送完成
+    if(CheckEvent(I2C_EVENT_MASTER_RECEIVER_MODE_SELECTED, 33)==ERROR){
         return ERROR;
     }
-    printf("`");
+    
     /* 读取len个数据 */
     while(len--){
         // 接收数据判断 

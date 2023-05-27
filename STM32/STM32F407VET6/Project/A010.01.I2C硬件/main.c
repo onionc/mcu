@@ -13,7 +13,7 @@ static void Delay(__IO u32 nCount)
 }
 
 // i2c 读写测试
-#define BUF_SIZE 10
+#define BUF_SIZE 256
 #define FirstPage 0x00 // 起始地址
 uint8_t wBuf[BUF_SIZE];
 uint8_t rBuf[BUF_SIZE];
@@ -23,8 +23,8 @@ ErrorStatus I2C_Test(void){
     
     // 准备数据
     for(i=0; i<BUF_SIZE; i++){
-        wBuf[i] = i;
-        printf("%02x", i);
+        wBuf[i] = i%9; // %3或%9是为了避免数据重复写入后 256一轮回，看不到差异。
+        //printf("%02x", wBuf[i]);
     }
     printf("\n");
     // 写数据
@@ -33,7 +33,7 @@ ErrorStatus I2C_Test(void){
         return ERROR;
     }
     printf("写数据完成\n");
-    return SUCCESS;
+    //return SUCCESS;
     // 读数据
     if(I2C_EE_ReadBytes(FirstPage, rBuf, BUF_SIZE)==ERROR){
         printf("读数据失败\n");
@@ -43,6 +43,7 @@ ErrorStatus I2C_Test(void){
     printf("对比数据\n");
     
     for(i=0; i<BUF_SIZE; i++){
+        //printf("%02x", rBuf[i]);
         if(wBuf[i]!=rBuf[i]){
             printf("error:%d 0x%02X", rBuf[i]);
             return ERROR;
