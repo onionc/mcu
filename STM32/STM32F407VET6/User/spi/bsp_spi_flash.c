@@ -1,2 +1,37 @@
 #include "./spi/bsp_spi_flash.h"
 
+// SPI FLASH 初始化
+void SPI_FLASH_INIT(){
+    GPIO_InitTypeDef GPIO_init;
+    
+    // 使能 FLASH SPI GPIO 时钟
+    RCC_AHB1PeriphClockCmd(FLASH_SPI_SCK_GPIO_CLK | FLASH_SPI_MISO_GPIO_CLK | FLASH_SPI_MOSI_GPIO_CLK | FLASH_CS_GPIO_CLK, ENABLE);
+    
+    // SPI 时钟
+    FLASH_SPI_CLK_INIT(FLASH_SPI_CLK, ENABLE);
+    
+    // 引脚复用
+    GPIO_PinAFConfig(FLASH_SPI_SCK_GPIO_PORT , FLASH_SPI_SCK_PINSOURCE , FLASH_SPI_SCK_AF );
+    GPIO_PinAFConfig(FLASH_SPI_MISO_GPIO_PORT, FLASH_SPI_MISO_PINSOURCE, FLASH_SPI_MISO_AF);
+    GPIO_PinAFConfig(FLASH_SPI_MOSI_GPIO_PORT, FLASH_SPI_MOSI_PINSOURCE, FLASH_SPI_MOSI_AF);
+    
+    // 引脚配置
+    GPIO_init.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_init.GPIO_Mode = GPIO_Mode_AF;
+    GPIO_init.GPIO_OType = GPIO_OType_PP;
+    GPIO_init.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    
+    GPIO_init.GPIO_Pin = FLASH_SPI_SCK_PIN;
+    GPIO_Init(FLASH_SPI_SCK_GPIO_PORT, &GPIO_init);
+    
+    GPIO_init.GPIO_Pin = FLASH_SPI_MISO_PIN;
+    GPIO_Init(FLASH_SPI_MISO_GPIO_PORT, &GPIO_init);
+    
+    GPIO_init.GPIO_Pin = FLASH_SPI_MOSI_PIN;
+    GPIO_Init(FLASH_SPI_MOSI_GPIO_PORT, &GPIO_init);
+    
+    GPIO_init.GPIO_Pin = FLASH_CS_PIN;
+    GPIO_init.GPIO_Mode = GPIO_Mode_OUT;
+    GPIO_Init(FLASH_SPI_MOSI_GPIO_PORT, &GPIO_init);
+    
+}

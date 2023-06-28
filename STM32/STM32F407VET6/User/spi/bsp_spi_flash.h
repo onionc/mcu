@@ -30,16 +30,22 @@
 #define FLASH_SPI_MOSI_AF           GPIO_AF_SPI2
 
 // CS/NSS 引脚
-#define FALSH_CS_PIN                GPIO_Pin_3
+#define FLASH_CS_PIN                GPIO_Pin_3
 #define FLASH_CS_GPIO_PORT          GPIOE
 #define FLASH_CS_GPIO_CLK           RCC_AHB1Periph_GPIOE
 
 
 
 
+// 控制CS引脚输出低电平，其他引脚不变
+#define SPI_FLASH_CS_LOW()          FLASH_CS_GPIO_PORT->BSRRH=FLASH_CS_PIN;
+#define SPI_FLASH_CS_HIGH()         FLASH_CS_GPIO_PORT->BSRRL=FLASH_CS_PIN;
 
 
 
+/* 方法 */
+// SPI FLASH 初始化
+void SPI_FLASH_INIT();
 
 
 #endif
