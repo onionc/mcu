@@ -46,6 +46,10 @@
 /* 方法 */
 // SPI FLASH 初始化
 void SPI_FLASH_INIT();
+// 使用SPI发送一个字节数据
+u8 SPI_FLASH_sendByte();
+// 使用SPI读取一个字节数据
+u8 SPI_FLASH_readByte();
 
 
 #endif
