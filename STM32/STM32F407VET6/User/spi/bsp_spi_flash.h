@@ -41,13 +41,16 @@
 #define SPI_FLASH_CS_LOW()          FLASH_CS_GPIO_PORT->BSRRH=FLASH_CS_PIN;
 #define SPI_FLASH_CS_HIGH()         FLASH_CS_GPIO_PORT->BSRRL=FLASH_CS_PIN;
 
-
+/* 超时时间 */
+#define SPIT_FLAG_TIMEOUT ((u32)0x1000)
 
 /* 方法 */
+// 检测事件
+ErrorStatus SPI_CheckEvent(uint32_t eventState, char *errorMsg);
 // SPI FLASH 初始化
 void SPI_FLASH_INIT();
 // 使用SPI发送一个字节数据
-u8 SPI_FLASH_sendByte();
+u8 SPI_FLASH_sendByte(u8 byte);
 // 使用SPI读取一个字节数据
 u8 SPI_FLASH_readByte();
 

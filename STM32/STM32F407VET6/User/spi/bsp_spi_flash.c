@@ -53,13 +53,67 @@ void SPI_FLASH_INIT(){
     SPI_Cmd(FLASH_SPI, ENABLE);
 }
 
-// 使用SPI发送一个字节数据
-u8 SPI_FLASH_sendByte(){
+// spi 超时输出
+static ErrorStatus SPI_TIMEOUT_MSG(char *msg){
+    printf("SPI等待超时 errorMsg：%s", msg);
+    return ERROR; 
+}
+
+/**
+ * @brief 检测事件
+ * 
+ * @param eventState 事件
+ * @param errorCode 自定义的错误码
+ * @return ErrorStatus
+ */
+ErrorStatus SPI_CheckEvent(uint32_t eventState, char *errorMsg){
+    // 超时时间赋值
+    __IO u32 timeout = SPIT_FLAG_TIMEOUT;
     
+    // 检测事件并清除标志
+    while(RESET == SPI_I2S_GetFlagStatus(FLASH_SPI, eventState)){
+        if((timeout--)==0) return SPI_TIMEOUT_MSG(errorMsg);
+    }
+    
+    
+    return SUCCESS;
+}
+
+// 使用SPI发送一个字节数据
+u8 SPI_FLASH_sendByte(u8 byte){
+    // 等待发送缓冲区为空，TXE事件
+    if(SPI_CheckEvent(SPI_I2S_FLAG_TXE, "txe flag")==ERROR){
+        return 0;
+    }
+    
+    // 写入数据寄存器，把数据写入发送缓冲区
+    SPI_I2S_SendData(FLASH_SPI, byte);
+    
+    // 等待发送缓冲区为空，RXNE事件
+    if(SPI_CheckEvent(SPI_I2S_FLAG_RXNE, "rxne flag")==ERROR){
+        return 0;
+    }
+    // 读取数据寄存器
+    return SPI_I2S_ReceiveData(FLASH_SPI);
     
 }
 
 // 使用SPI读取一个字节数据
 u8 SPI_FLASH_readByte(){
-    
+    return SPI_FLASH_sendByte(0xff);
 }
+
+
+
+
+
+
+
+
+
+
+
+
+
+
+
