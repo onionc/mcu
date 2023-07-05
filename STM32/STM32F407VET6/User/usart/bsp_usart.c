@@ -7,28 +7,28 @@
  * 3. 配置USART参数；
  * 5. 使能USART；
  */
-void Usart_Cfg(uint32_t baudrate){
+void Usart1_Cfg(uint32_t baudrate){
     GPIO_InitTypeDef gpioInit;
     USART_InitTypeDef usartInit;
     
     // 1. 使能RX和TX引脚GPIO时钟和USART时钟；
-    RCC_AHB1PeriphClockCmd(USARTx_TX_GPIO_CLK | USARTx_RX_GPIO_CLK, ENABLE);
-    USARTx_CLOCK_CMD(USARTx_CLK, ENABLE); // 宏展开 RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
+    RCC_AHB1PeriphClockCmd(USART1_TX_GPIO_CLK | USART1_RX_GPIO_CLK, ENABLE);
+    USART1_CLOCK_CMD(USART1_CLK, ENABLE); // 宏展开 RCC_APB2PeriphClockCmd(RCC_APB2Periph_USART1, ENABLE);
     
     // 2. 初始化GPIO，并将GPIO复用到USART上；
     // 外设复用：连接 端口 到USARTx_Tx，USARTx_Rx
-    GPIO_PinAFConfig(USARTx_TX_GPIO_PORT, USARTx_TX_SOURCE, USARTx_TX_AF);
-    GPIO_PinAFConfig(USARTx_RX_GPIO_PORT, USARTx_RX_SOURCE, USARTx_RX_AF);
+    GPIO_PinAFConfig(USART1_TX_GPIO_PORT, USART1_TX_SOURCE, USART1_TX_AF);
+    GPIO_PinAFConfig(USART1_RX_GPIO_PORT, USART1_RX_SOURCE, USART1_RX_AF);
     // 配置引脚的复用功能
     gpioInit.GPIO_OType = GPIO_OType_PP; 
     gpioInit.GPIO_PuPd = GPIO_PuPd_UP; 
     gpioInit.GPIO_Mode = GPIO_Mode_AF;
     gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
     
-    gpioInit.GPIO_Pin = USARTx_TX_PIN;
-    GPIO_Init(USARTx_TX_GPIO_PORT, &gpioInit);
-    gpioInit.GPIO_Pin = USARTx_RX_PIN;
-    GPIO_Init(USARTx_RX_GPIO_PORT, &gpioInit);
+    gpioInit.GPIO_Pin = USART1_TX_PIN;
+    GPIO_Init(USART1_TX_GPIO_PORT, &gpioInit);
+    gpioInit.GPIO_Pin = USART1_RX_PIN;
+    GPIO_Init(USART1_RX_GPIO_PORT, &gpioInit);
     
     // 3. 配置USART参数；
     usartInit.USART_BaudRate = baudrate;
@@ -37,10 +37,46 @@ void Usart_Cfg(uint32_t baudrate){
     usartInit.USART_Parity = USART_Parity_No;
     usartInit.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
     usartInit.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-    USART_Init(USARTx, &usartInit);
+    USART_Init(USART1, &usartInit);
     
     // 5. 使能USART；
-    USART_Cmd(USARTx, ENABLE);
+    USART_Cmd(USART1, ENABLE);
+}
+
+void Usart3_Cfg(uint32_t baudrate){
+    GPIO_InitTypeDef gpioInit;
+    USART_InitTypeDef usartInit;
+    
+    // 1. 使能RX和TX引脚GPIO时钟和USART时钟；
+    RCC_AHB1PeriphClockCmd(USART3_TX_GPIO_CLK | USART3_RX_GPIO_CLK, ENABLE);
+    USART3_CLOCK_CMD(USART3_CLK, ENABLE);
+    
+    // 2. 初始化GPIO，并将GPIO复用到USART上；
+    // 外设复用：连接 端口 到USARTx_Tx，USARTx_Rx
+    GPIO_PinAFConfig(USART3_TX_GPIO_PORT, USART3_TX_SOURCE, USART3_TX_AF);
+    GPIO_PinAFConfig(USART3_RX_GPIO_PORT, USART3_RX_SOURCE, USART3_RX_AF);
+    // 配置引脚的复用功能
+    gpioInit.GPIO_OType = GPIO_OType_PP;
+    gpioInit.GPIO_PuPd = GPIO_PuPd_UP;
+    gpioInit.GPIO_Mode = GPIO_Mode_AF;
+    gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
+    
+    gpioInit.GPIO_Pin = USART3_TX_PIN;
+    GPIO_Init(USART3_TX_GPIO_PORT, &gpioInit);
+    gpioInit.GPIO_Pin = USART3_RX_PIN;
+    GPIO_Init(USART3_RX_GPIO_PORT, &gpioInit);
+    
+    // 3. 配置USART参数；
+    usartInit.USART_BaudRate = baudrate;
+    usartInit.USART_WordLength = USART_WordLength_8b;
+    usartInit.USART_StopBits = USART_StopBits_1;
+    usartInit.USART_Parity = USART_Parity_No;
+    usartInit.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    usartInit.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_Init(USART3, &usartInit);
+    
+    // 5. 使能USART；
+    USART_Cmd(USART3, ENABLE);
 }
 
 
@@ -61,15 +97,16 @@ void Usart_SendStr(USART_TypeDef* pUsart, u8 *str, u32 len){
     }while(len==0 ? (*(str+k)!=0) : (k<len) );
 }
 
+
 // 重定向 printf
 int fputc(int ch, FILE *f){
-    Usart_SendByte(USARTx, ch);
+    Usart_SendByte(PRINT_USART, ch);
     return ch;
 }
 
 // 重定向 scanf
 int fgetc(FILE *f){
     // 等待串口输入
-    while(USART_GetFlagStatus(USARTx, USART_FLAG_RXNE) == RESET);
-    return (int)USART_ReceiveData(USARTx);
+    while(USART_GetFlagStatus(PRINT_USART, USART_FLAG_RXNE) == RESET);
+    return (int)USART_ReceiveData(PRINT_USART);
 }

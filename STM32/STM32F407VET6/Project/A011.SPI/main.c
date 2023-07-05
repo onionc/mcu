@@ -1,7 +1,9 @@
+#define USART_NUMBER 3
 
 #include "stm32f4xx.h"
 
 #include "./led/bsp_led.h"
+
 #include "./usart/bsp_usart.h"
 
 
@@ -22,7 +24,7 @@ int main(){
     LED3_OFF;
     
     // 初始化usart
-    Usart_Cfg(9600);
+    Usart3_Cfg(9600);
     printf("串口初始化成功\n");
 
     while(1){

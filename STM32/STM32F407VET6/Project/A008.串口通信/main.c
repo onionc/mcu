@@ -8,7 +8,7 @@ int main(){
     u8 rbuf[256];
     
     // 初始化usart
-    Usart_Cfg(9600);
+    Usart_Cfg1(9600);
     
     printf("初始化成功");
 
@@ -42,7 +42,7 @@ int main(){
     
     
     // 初始化usart
-    Usart_Cfg(9600);
+    Usart_Cfg1(9600);
     
     printf("初始化成功");
 
