@@ -363,7 +363,7 @@
             <useXO>0</useXO>
             <VariousControls>
               <MiscControls></MiscControls>
-              <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx,</Define>
+              <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx,PRINT_USART3</Define>
               <Undefine></Undefine>
               <IncludePath>..\..\Libraries\CMSIS\Device\STM32F4xx\Include;..\..\Libraries\CMSIS\Include;..\..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\..\User</IncludePath>
             </VariousControls>
@@ -796,6 +796,11 @@
               <FileName>bsp_usart.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\usart\bsp_usart.c</FilePath>
+            </File>
+            <File>
+              <FileName>bsp_basic_tim.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\tim\bsp_basic_tim.c</FilePath>
             </File>
           </Files>
         </Group>

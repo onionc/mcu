@@ -55,7 +55,7 @@
 void Usart1_Cfg(u32 baudrate);
 void Usart3_Cfg(u32 baudrate);
 // 发送一个字符
-static void Usart_SendByte(USART_TypeDef* pUsart, u8 ch);
+void Usart_SendByte(USART_TypeDef* pUsart, u8 ch);
 // 发送字符串函数, len==0时则发送str字符串（\0结尾）
 void Usart_SendStr(USART_TypeDef* pUsart, u8 *str, u32 len);
 

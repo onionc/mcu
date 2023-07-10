@@ -81,7 +81,7 @@ void Usart3_Cfg(uint32_t baudrate){
 
 
 // 发送一个字符
-static void Usart_SendByte(USART_TypeDef* pUsart, u8 ch){
+void Usart_SendByte(USART_TypeDef* pUsart, u8 ch){
     // 发送一个字节到串口
     USART_SendData(pUsart, ch);
     // 等待发送完成
