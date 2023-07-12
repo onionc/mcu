@@ -13,6 +13,6 @@
 void TIMx_NVIC_Config(void);
 
 // ∂® ±∆˜≈‰÷√
-void TIM_Mode_Config(void);
+void TIM_Mode_Config(unsigned int freq);
 
 #endif
