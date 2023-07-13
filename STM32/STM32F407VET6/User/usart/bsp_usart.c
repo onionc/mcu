@@ -43,6 +43,56 @@ void Usart1_Cfg(uint32_t baudrate){
     USART_Cmd(USART1, ENABLE);
 }
 
+void Usart2_Cfg(uint32_t baudrate){
+    GPIO_InitTypeDef gpioInit;
+    USART_InitTypeDef usartInit;
+    
+    // 1. 使能RX和TX引脚GPIO时钟和USART时钟；
+    RCC_AHB1PeriphClockCmd(USART2_TX_GPIO_CLK | USART2_RX_GPIO_CLK | RS485_RE_GPIO_CLK, ENABLE);
+    USART2_CLOCK_CMD(USART2_CLK, ENABLE);
+    
+    // 2. 初始化GPIO，并将GPIO复用到USART上；
+    // 外设复用：连接 端口 到USARTx_Tx，USARTx_Rx
+    GPIO_PinAFConfig(USART2_TX_GPIO_PORT, USART2_TX_SOURCE, USART2_TX_AF);
+    GPIO_PinAFConfig(USART2_RX_GPIO_PORT, USART2_RX_SOURCE, USART2_RX_AF);
+    // 配置引脚的复用功能
+    gpioInit.GPIO_OType = GPIO_OType_PP;
+    gpioInit.GPIO_PuPd = GPIO_PuPd_UP;
+    gpioInit.GPIO_Mode = GPIO_Mode_AF;
+    gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
+    
+    gpioInit.GPIO_Pin = USART2_TX_PIN;
+    GPIO_Init(USART2_TX_GPIO_PORT, &gpioInit);
+    gpioInit.GPIO_Pin = USART2_RX_PIN;
+    GPIO_Init(USART2_RX_GPIO_PORT, &gpioInit);
+    
+    // 485收发控制
+    gpioInit.GPIO_OType = GPIO_OType_PP;
+    gpioInit.GPIO_PuPd = GPIO_PuPd_NOPULL;
+    gpioInit.GPIO_Mode = GPIO_Mode_OUT;
+    gpioInit.GPIO_Pin = RS485_RE_PIN;
+    gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
+    GPIO_Init(RS485_RE_GPIO_PORT, &gpioInit);
+    
+    // 3. 配置USART参数；
+    usartInit.USART_BaudRate = baudrate;
+    usartInit.USART_WordLength = USART_WordLength_8b;
+    usartInit.USART_StopBits = USART_StopBits_1;
+    usartInit.USART_Parity = USART_Parity_No;
+    usartInit.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    usartInit.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    USART_Init(USART2, &usartInit);
+    
+    // 5. 使能USART；
+    USART_Cmd(USART2, ENABLE);
+    
+    
+    // 485进入接收模式
+    // GPIO_ResetBits(RS485_RE_GPIO_PORT, RS485_RE_PIN);
+    // 485进入发送模式
+    GPIO_SetBits(RS485_RE_GPIO_PORT, RS485_RE_PIN);
+}
+
 void Usart3_Cfg(uint32_t baudrate){
     GPIO_InitTypeDef gpioInit;
     USART_InitTypeDef usartInit;

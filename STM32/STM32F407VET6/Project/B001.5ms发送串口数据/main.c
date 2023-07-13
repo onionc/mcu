@@ -13,7 +13,7 @@ int main(){
     LED1_OFF;LED2_OFF;LED3_OFF;
     
     // 初始化usart
-    Usart3_Cfg(115200);
+    Usart2_Cfg(115200);
     LED2_ON;
     printf("初始化成功");
     
