@@ -30,21 +30,11 @@ u8 dvlData[]="\
 :HM,G,D,0e8b,0ffe,*10.842,*1.974,*5.493\r\n\n\
 ";
 
-u8 dvlData2[]="\
-:SA,  -5.91,   +4.35,  0.00\r\n\n\
-:TS,23030218083390,35.0, +14.6,   0.2,1505.4,  0\r\n\n\
-:BI,    +0,    +0,    +0,-32768,A\r\n\n\
-:BS,    +0,    +0,    +0,A\r\n\n\
-:BE,    +0,    +0,    +0,A\r\n\n\
- :BD,        +0.00,        +0.00,        +0.00,   0.55,  0.00\r\n\n\
-:HM,G,D,0e89,0ffe, 10.842, 1.974, 5.493\r\n\n\
-";
-
 void BASIC_TIM_IRQHandler(void){
     
     if(TIM_GetITStatus(BASIC_TIM, TIM_IT_Update) != RESET){
         
-        Usart_SendStr(PRINT_USART, dvlData, 0);
+        //Usart_SendStr(PRINT_USART, dvlData, 0);
         
         LED1_TOGGLE;
         TIM_ClearITPendingBit(BASIC_TIM, TIM_IT_Update);
