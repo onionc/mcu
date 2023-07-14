@@ -55,7 +55,7 @@ void ADC_Mode_Config(void){
 void ADC_NVIC_Config(void){
     NVIC_InitTypeDef NVIC_init;
     // 中断组0 只需要执行一次
-    NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
+    // NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
     
     // 中断来源
     NVIC_init.NVIC_IRQChannel = ADC_IRQ;
@@ -70,13 +70,13 @@ void ADC_NVIC_Config(void){
     NVIC_Init(&NVIC_init);
 }
 
+// 小车adc值
+extern float carAdcValue;
+
 void ADC_IRQHandler(void){
-    int a;
     if(ADC_GetITStatus(ADC_NUM, ADC_IT_EOC)==SET){
         // 读取adc的转换值
-        a = ADC_GetConversionValue(ADC_NUM);
-        printf("adc = %f\n", a*3.3/4096);
-        LED3_ON;
+        carAdcValue = ADC_GetConversionValue(ADC_NUM)*3.3/4096;
     }
     ADC_ClearITPendingBit(ADC_NUM, ADC_IT_EOC);
 }

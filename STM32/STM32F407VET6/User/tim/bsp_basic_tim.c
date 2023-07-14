@@ -20,21 +20,28 @@ void TIMx_NVIC_Config(void){
     NVIC_Init(&NVIC_init);
     
 }
-u8 dvlData[]="\
-:SA,-5.89,+4.33,0.00\r\n\n\
-:TS,23030218083269,35.0, +21.0,0.2,1524.2,  0\r\n\n\
-:BI,-32768,-32768,-32768,-32768,V\r\n\n\
-:BS,-32768,-32768,-32768,V\r\n\n\
-:BE,-32768,-32768,-32768,V\r\n\n\
-:BD,+0.00,+0.00,+0.00,0.00,0.00\r\n\n\
-:HM,G,D,0e8b,0ffe,*10.842,*1.974,*5.493\r\n\n\
-";
+
+// 小车adc值
+extern float carAdcValue;
+unsigned char data[3]={0x88, 0x77};
 
 void BASIC_TIM_IRQHandler(void){
     
     if(TIM_GetITStatus(BASIC_TIM, TIM_IT_Update) != RESET){
         
-        //Usart_SendStr(PRINT_USART, dvlData, 0);
+        // 判断adc采集的电压。本来有左右遥控，高电平时3.3v，正常是0.9v。现在发现可以检测一路就可判断两路，正常情况0.9v都没按, 3.3v按了L，0v按了R。
+        if(carAdcValue<0.5){
+            // L
+            data[2] = 'L';
+        }else if(carAdcValue>2.5){
+            // R
+            data[2] = 'R';
+        }else{
+            // 未按任何按钮
+            data[2] = '0';
+        }
+        
+        Usart_SendStr(PRINT_USART, data, 3);
         
         LED1_TOGGLE;
         TIM_ClearITPendingBit(BASIC_TIM, TIM_IT_Update);

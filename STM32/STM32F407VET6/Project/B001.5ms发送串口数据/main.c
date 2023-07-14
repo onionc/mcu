@@ -4,7 +4,7 @@
 #include "./usart/bsp_usart.h"
 #include "./tim/bsp_basic_tim.h"
 #include "./adc/bsp_adc.h"
-
+float carAdcValue=0;
 int main(){
     char chTemp;
     u8 rbuf[256];
@@ -23,6 +23,7 @@ int main(){
     TIM_Mode_Config(10); // …Ë÷√∂® ±∆˜
     
     // adc
+    
     ADC_GPIO_Config();
     ADC_Mode_Config();
     ADC_NVIC_Config();
