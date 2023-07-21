@@ -4,18 +4,24 @@
 #include "./usart/bsp_usart.h"
 #include "./tim/bsp_basic_tim.h"
 #include "./adc/bsp_adc.h"
+
 float carAdcValue=0;
+
+
+RCC_ClocksTypeDef get_rcc;
 int main(){
     char chTemp;
     u8 rbuf[256];
+    SystemCoreClockUpdate();
     
+    RCC_GetClocksFreq(&get_rcc);
     // LED
     LED_GPIO_Config();
     LED1_OFF;LED2_OFF;LED3_OFF; // led1 定时器闪灯
     
     
     // 初始化usart
-    Usart2_Cfg(115200);
+    Usart3_Cfg(115200);
     printf("初始化成功");
     
     // 定时器
