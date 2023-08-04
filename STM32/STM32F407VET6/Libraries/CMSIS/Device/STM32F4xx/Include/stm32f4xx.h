@@ -148,6 +148,12 @@
   #define HSE_VALUE    ((uint32_t)8000000) /*!< Value of the External oscillator in Hz */
  #endif /* HSE_VALUE */
 #endif /* STM32F40_41xxx || STM32F427_437xx || STM32F429_439xx || STM32F401xx || STM32F411xE || STM32F469_479xx */
+
+#if defined (HSE_8M)
+    #undef HSE_VALUE
+    #define HSE_VALUE ((uint32_t)8000000)
+#endif
+
 /**
  * @brief In the following line adjust the External High Speed oscillator (HSE) Startup 
    Timeout value 
