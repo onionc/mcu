@@ -1,10 +1,12 @@
-#define USART_NUMBER 3
 
 #include "stm32f4xx.h"
 
 #include "./led/bsp_led.h"
 
 #include "./usart/bsp_usart.h"
+#include "./spi/bsp_spi.h"
+#include "./spi/bsp_flash.h"
+
 
 
 //简单的延时函数
@@ -16,7 +18,7 @@ static void Delay(__IO u32 nCount)
 
 
 int main(){
-
+    u32 id;
     // led 初始化
     LED_GPIO_Config();
     LED1_OFF;
@@ -24,12 +26,15 @@ int main(){
     LED3_OFF;
     
     // 初始化usart
-    Usart3_Cfg(9600);
+    Usart1_Cfg(9600);
     printf("串口初始化成功\n");
-
+    
+    SPI_FLASH_INIT();
+    id = SPI_FLASH_ReadId();
+    printf("%x", id);
     while(1){
-        LED3_TOGGLE;
-        Delay(0xffffff);
+        
+        
     }
     
     return 0;

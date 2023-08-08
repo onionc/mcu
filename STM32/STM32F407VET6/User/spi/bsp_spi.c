@@ -1,4 +1,4 @@
-#include "./spi/bsp_spi_flash.h"
+#include "./spi/bsp_spi.h"
 
 // SPI FLASH ≥ı ºªØ
 void SPI_FLASH_INIT(){
