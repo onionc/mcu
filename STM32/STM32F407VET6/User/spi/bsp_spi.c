@@ -35,7 +35,7 @@ void SPI_FLASH_INIT(){
     
     GPIO_init.GPIO_Pin = FLASH_CS_PIN;
     GPIO_init.GPIO_Mode = GPIO_Mode_OUT;
-    GPIO_Init(FLASH_SPI_MOSI_GPIO_PORT, &GPIO_init);
+    GPIO_Init(FLASH_CS_GPIO_PORT, &GPIO_init);
     
     /* SPI ƒ£ Ω≈‰÷√ */
     SPI_init.SPI_Direction = SPI_Direction_2Lines_FullDuplex;

@@ -31,7 +31,7 @@ int main(){
     
     SPI_FLASH_INIT();
     id = SPI_FLASH_ReadId();
-    printf("%x", id);
+    printf("id=%x\n", id);
     while(1){
         
         
