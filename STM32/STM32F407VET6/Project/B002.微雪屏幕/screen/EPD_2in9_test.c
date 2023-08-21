@@ -41,15 +41,15 @@ int EPD_test(void)
     DEV_Delay_ms(500);
 
     //Create a new image cache
-    UBYTE *BlackImage=dataTemp;
+    UBYTE *BlackImage;
     /* you have to edit the startup_stm32fxxx.s file and set a big enough heap size */
     UWORD Imagesize = ((EPD_2IN9_WIDTH % 8 == 0)? (EPD_2IN9_WIDTH / 8 ): (EPD_2IN9_WIDTH / 8 + 1)) * EPD_2IN9_HEIGHT;
-    /*
+    
     if((BlackImage = (UBYTE *)malloc(Imagesize)) == NULL) {
         printf("Failed to apply for black memory...\r\n");
         return -1;
     }
-    */
+    
     printf("Paint_NewImage\r\n");
     Paint_NewImage(BlackImage, EPD_2IN9_WIDTH, EPD_2IN9_HEIGHT, 270, WHITE);
 
@@ -64,7 +64,7 @@ int EPD_test(void)
     DEV_Delay_ms(2000);
 #endif
 
-#if 0   // Drawing on the image
+#if 1   // Drawing on the image
     printf("Drawing\r\n");
     //1.Select Image
     Paint_SelectImage(BlackImage);
@@ -102,7 +102,7 @@ int EPD_test(void)
     DEV_Delay_ms(2000);
 #endif
 
-#if 1   //Partial refresh, example shows time    		
+#if 0   //Partial refresh, example shows time    		
     printf("Partial refresh\r\n");
     EPD_2IN9_Init(EPD_2IN9_PART);
     printf("1\r\n");
@@ -139,9 +139,9 @@ printf("num=%d\r\n",num);
     }
 
 #endif
-    printf("Clear...\r\n");
-    EPD_2IN9_Init(EPD_2IN9_FULL);
-    EPD_2IN9_Clear();
+    //printf("Clear...\r\n");
+    //EPD_2IN9_Init(EPD_2IN9_FULL);
+    //EPD_2IN9_Clear();
 
     printf("Goto Sleep...\r\n");
     EPD_2IN9_Sleep();

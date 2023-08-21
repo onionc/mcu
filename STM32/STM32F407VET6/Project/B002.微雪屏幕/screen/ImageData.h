@@ -64,7 +64,7 @@ extern const unsigned char gImage_2in7b_Red_V2[5808];
 extern const unsigned char gImage_2in7_4Gray[];
 
 
-extern const unsigned char gImage_2in9[];
+extern  unsigned char gImage_2in9[];
 extern const unsigned char gImage_2in9bc_b[];
 extern const unsigned char gImage_2in9bc_ry[];
 
