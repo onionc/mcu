@@ -2,17 +2,21 @@
 #define __BSP_FLASH_H
 
 #include <stdbool.h>
-
+#include "./spi/bsp_spi.h"
 // flash 配置
+
+#define FlashId                         0xEF4016  // W25Q64
 
 /**
  * 说明
  * 1页=256 Byte
  * 1扇区=16*256=4KB
  * 1块 = 16*4 = 64KB
- * W25Q64是128块=8MB；W25Q128=16MB。
+ * W25Q64是128块=8MB(128*64/1024=8MB)；W25Q128=16MB。
  */
-#define W25X_FLASH_PER_PAGE_BYTES_MAX 256 // 每一页的字节
+#define FLASH_PER_PAGE_BYTES 256  // 每一页的字节
+#define W25X_FLASH_PER_PAGE_BYTES_MAX FLASH_PER_PAGE_BYTES
+
  
 /*FLASH常用命令*/
 #define W25X_WriteEnable                0x06
@@ -34,6 +38,7 @@
 /*其它*/
 #define Dummy_Byte                      0xFF
 
+
 // 读取 FLASH ID
 u32 SPI_FLASH_ReadId(void);
 
@@ -53,7 +58,13 @@ ErrorStatus SPI_FLASH_SectorErase(u32 sectorAddr);
 // 按页写入数据
 ErrorStatus SPI_FLASH_PageWrite(u8 *pBuf, u32 writeAddr, u16 writeLen);
 
+// 不定量写入
+ErrorStatus SPI_FLASH_BufWrite(u8 *pBuf, u32 writeAddr, u16 writeLen);
+
 // 读取 FLASH 数据
 ErrorStatus SPI_FLASH_ReadData(u8 *pBuf, u32 readAddr, u16 readLen);
+
+// 唤醒 FLASH
+void SPI_FLASH_WAKEUP();
 
 #endif

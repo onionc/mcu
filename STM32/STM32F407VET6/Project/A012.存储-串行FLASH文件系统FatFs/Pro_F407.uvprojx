@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>SPI</TargetName>
+      <TargetName>基于串行Flash文件系统FatFs</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
@@ -365,7 +365,7 @@
               <MiscControls></MiscControls>
               <Define>USE_STDPERIPH_DRIVER,STM32F40_41xxx,PRINT_USART1</Define>
               <Undefine></Undefine>
-              <IncludePath>..\..\Libraries\CMSIS\Device\STM32F4xx\Include;..\..\Libraries\CMSIS\Include;..\..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\..\User</IncludePath>
+              <IncludePath>..\..\Libraries\CMSIS\Device\STM32F4xx\Include;..\..\Libraries\CMSIS\Include;..\..\Libraries\STM32F4xx_StdPeriph_Driver\inc;..\..\User;..\..\User\FatFs</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -806,6 +806,21 @@
               <FileName>bsp_spi.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\..\User\spi\bsp_spi.c</FilePath>
+            </File>
+            <File>
+              <FileName>diskio.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\FatFs\diskio.c</FilePath>
+            </File>
+            <File>
+              <FileName>ff.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\FatFs\ff.c</FilePath>
+            </File>
+            <File>
+              <FileName>ffunicode.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\..\User\FatFs\ffunicode.c</FilePath>
             </File>
           </Files>
         </Group>

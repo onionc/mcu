@@ -1,4 +1,4 @@
-#include "./spi/bsp_spi.h"
+
 #include "./spi/bsp_flash.h"
 
 // 读取 FLASH ID
@@ -131,6 +131,128 @@ ErrorStatus SPI_FLASH_PageWrite(u8 *pBuf, u32 writeAddr, u16 writeLen){
     return SUCCESS;
 }
 
+// 不定量写入
+ErrorStatus SPI_FLASH_BufWrite(u8 *pBuf, u32 writeAddr, u16 writeLen){
+    u8 numOfPage, numOfOth, addr, count, temp;
+    
+    // addr为0则刚好是一页开头
+    addr = writeAddr % FLASH_PER_PAGE_BYTES;
+    // 差 count 个字节刚好一页
+    count = FLASH_PER_PAGE_BYTES - addr; 
+    // 要写多少页
+    numOfPage = writeLen / FLASH_PER_PAGE_BYTES;
+    // 还剩不满一页的多少字节
+    numOfOth = writeLen % FLASH_PER_PAGE_BYTES;
+    
+    // 数据不按页对齐
+    if(addr!=0){
+        // 先用剩余字节count 写满当前页
+        if(SPI_FLASH_PageWrite(pBuf, writeAddr, count)==ERROR) return ERROR;
+        writeAddr += count;
+        pBuf += count;
+        
+        // 重新计算页和剩余，后面数据是按页对齐的
+        writeLen-=count;
+        numOfPage = writeLen / FLASH_PER_PAGE_BYTES;
+        numOfOth = writeLen % FLASH_PER_PAGE_BYTES;
+    }
+        
+    // writeLen < 页大小，小于一页直接按页写入一次
+    if(numOfPage==0){
+        if(SPI_FLASH_PageWrite(pBuf, writeAddr, writeLen)==ERROR) return ERROR;
+    }else{
+        // 先写整页
+        while(numOfPage--){
+            if(SPI_FLASH_PageWrite(pBuf, writeAddr, writeLen)==ERROR) return ERROR;
+            writeAddr += FLASH_PER_PAGE_BYTES;
+            pBuf += FLASH_PER_PAGE_BYTES;
+        }
+        
+        // 写剩余部分
+        if(numOfOth){
+            if(SPI_FLASH_PageWrite(pBuf, writeAddr, numOfOth)==ERROR) return ERROR;
+        }
+    }
+    return SUCCESS;
+ 
+    
+    /* 跟示例写完，发现可以优化, 见上面
+    u8 numOfPage, numOfOth, addr, count, temp;
+    
+    // addr为0则刚好是一页开头
+    addr = writeAddr % FLASH_PER_PAGE_BYTES;
+    // 差 count 个字节刚好一页
+    count = FLASH_PER_PAGE_BYTES - addr; 
+    // 要写多少页
+    numOfPage = writeLen / FLASH_PER_PAGE_BYTES;
+    // 还剩不满一页的多少字节
+    numOfOth = writeLen % FLASH_PER_PAGE_BYTES;
+    
+    if(addr == 0){
+        // 按页对齐
+        
+        // writeLen < 页大小，小于一页直接按页写入一次
+        if(numOfPage==0){
+            SPI_FLASH_PageWrite(pBuf, writeAddr, writeLen);
+        }else{
+            // 先写整页
+            while(numOfPage--){
+                SPI_FLASH_PageWrite(pBuf, writeAddr, writeLen);
+                writeAddr += FLASH_PER_PAGE_BYTES;
+                pBuf += FLASH_PER_PAGE_BYTES;
+            }
+            
+            // 写剩余部分
+            SPI_FLASH_PageWrite(pBuf, writeAddr, numOfOth);
+        }
+    }else{ 
+        // 地址不对齐
+        
+        // writeLen < 页大小
+        if(numOfPage==0){
+            
+            // 要写入的数据长度 大于 当前页剩余的字节
+            if(numOfOth > count){
+                // 先用剩余字节count 写满当前页
+                SPI_FLASH_PageWrite(pBuf, writeAddr, count);
+                writeAddr += count;
+                pBuf += count;
+                
+                // 再写剩余数据
+                SPI_FLASH_PageWrite(pBuf, writeAddr, numOfOth - count);
+            }else{
+                // 当前页剩余字节可以写完数据
+                SPI_FLASH_PageWrite(pBuf, writeAddr, writeLen);
+            }
+            
+        }else{
+            // 先写当前页剩余字节count
+            SPI_FLASH_PageWrite(pBuf, writeAddr, count);
+            writeAddr += count;
+            pBuf += count;
+            
+            // 重新计算页和剩余，之后就可从新页开始写入
+            writeLen-=count;
+            numOfPage = writeLen / FLASH_PER_PAGE_BYTES;
+            numOfOth = writeLen % FLASH_PER_PAGE_BYTES;
+            // 写整页
+            while(numOfPage--){
+                SPI_FLASH_PageWrite(pBuf, writeAddr, writeLen);
+                writeAddr += FLASH_PER_PAGE_BYTES;
+                pBuf += FLASH_PER_PAGE_BYTES;
+            }
+            
+            // 写剩余部分
+            SPI_FLASH_PageWrite(pBuf, writeAddr, numOfOth);
+        }
+    
+    }
+    
+    */
+    
+    
+    
+}
 /**
  * 读取 FLASH 数据
  * @param pBuf 存储读出数据的指针
@@ -149,5 +271,12 @@ ErrorStatus SPI_FLASH_ReadData(u8 *pBuf, u32 readAddr, u16 readLen){
     while(readLen--){
         *pBuf++ = SPI_FLASH_sendByte(Dummy_Byte); // 发送一字节数据
     }
+    SPI_FLASH_CS_HIGH(); // 结束通讯
+}
+
+// 唤醒 FLASH
+void SPI_FLASH_WAKEUP(){
+    SPI_FLASH_CS_LOW(); // 开始通讯
+    SPI_FLASH_sendByte(W25X_ReleasePowerDown); // 上电命令
     SPI_FLASH_CS_HIGH(); // 结束通讯
 }
