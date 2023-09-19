@@ -5,7 +5,7 @@
 #include "./spi/bsp_spi.h"
 // flash ≈‰÷√
 
-#define FlashId                         0xEF4016  // W25Q64
+#define FlashId                         0xEF4017  // W25Q64
 
 /**
  * Àµ√˜

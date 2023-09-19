@@ -31,6 +31,7 @@ DSTATUS disk_status (
 {
 	DSTATUS stat = STA_NOINIT; // 默认：不初始化
 	int result;
+    u32 a;
 
 	switch (pdrv) {
         case ATA: // SD 卡
@@ -99,9 +100,9 @@ DRESULT disk_read (
         case ATA:
             break;
         case SPI_FLASH:
-            // 扇区偏移6MB（做其他实验用），就只剩下2MB可用了
-            // 1扇区=4kb, 6*1024/4 = 1536
-            sector+=1536;
+            // 扇区偏移4MB（做其他实验用），就只剩下4MB可用了
+            // 1扇区=4kb, 4*1024/4 = 1024
+            sector+=1024;
             SPI_FLASH_ReadData(buff, sector<<12, count<<12); // <<12 为乘4096，从扇区化为字节
             res = RES_OK;
             break;
@@ -136,9 +137,9 @@ DRESULT disk_write (
         case ATA:
             break;
         case SPI_FLASH:
-            sector+=1536; // 偏移6MB
+            sector+=1024; // 偏移4MB
             SPI_FLASH_SectorErase(sector<<12);
-            if(SPI_FLASH_PageWrite((u8*)buff, sector<<12, count<<12)==SUCCESS){
+            if(SPI_FLASH_BufWrite((u8*)buff, sector<<12, count<<12)==SUCCESS){
                 res = RES_OK;
             }else{
                 res = RES_PARERR;
@@ -147,7 +148,7 @@ DRESULT disk_write (
             break;
     }
 
-	return RES_PARERR;
+	return res;
 }
 
 #endif
@@ -172,8 +173,8 @@ DRESULT disk_ioctl (
         case SPI_FLASH:
             switch(cmd){
                 case GET_SECTOR_COUNT:
-                    // 扇区数量 2MB=2*1024/4=512 个扇区
-                    *(WORD *)buff = 512;
+                    // 扇区数量 4MB=4*1024/4=1024 个扇区
+                    *(WORD *)buff = 1024;
                     break;
                 case GET_SECTOR_SIZE:
                     // 扇区大小

@@ -163,7 +163,7 @@ ErrorStatus SPI_FLASH_BufWrite(u8 *pBuf, u32 writeAddr, u16 writeLen){
     }else{
         // œ»–¥’˚“≥
         while(numOfPage--){
-            if(SPI_FLASH_PageWrite(pBuf, writeAddr, writeLen)==ERROR) return ERROR;
+            if(SPI_FLASH_PageWrite(pBuf, writeAddr, FLASH_PER_PAGE_BYTES)==ERROR) return ERROR;
             writeAddr += FLASH_PER_PAGE_BYTES;
             pBuf += FLASH_PER_PAGE_BYTES;
         }

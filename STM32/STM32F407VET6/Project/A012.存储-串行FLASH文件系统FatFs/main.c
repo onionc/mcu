@@ -4,59 +4,65 @@
 #include "./led/bsp_led.h"
 
 #include "./usart/bsp_usart.h"
-#include "./spi/bsp_spi.h"
 #include "./spi/bsp_flash.h"
 
-#define ADDR 0x0000
-u8 data[100] = "大道至拙，重剑无锋";
-u8 data2[100] = {0};
+#include "./ff.h"
 
-//简单的延时函数
-static void Delay(__IO u32 nCount)
-{
-    while(nCount--);
-}
+// 变量定义
+FATFS fs;           //文件系统对象
+FIL file;           // 文件对象
+FRESULT fRes;      // 文件操作结果
+BYTE rBuf[FF_MAX_SS]={0};
+BYTE wBuf[] = "";
+const char *physicalNum = "1:";
 
 
 
 int main(){
     u32 id;
+    MKFS_PARM parm;
     // led 初始化
     LED_GPIO_Config();
-    LED1_OFF;
+    LED1_OFF; // 1灯亮代表文件系统问题
     LED2_OFF;
     LED3_OFF;
     
     // 初始化usart
     Usart1_Cfg(9600);
-    printf("串口初始化成功\n");
+    printf("串口初始化成功\r\n");
     
-    // 初始化FLASH，读取ID
-    SPI_FLASH_INIT();
-    Delay(200);
-    id = SPI_FLASH_ReadId();
-    printf("id=%x\n", id);
-
-    // 擦除数据
-    if(SPI_FLASH_SectorErase(ADDR)==ERROR){
-        printf("数据擦除失败\n");
-    }
+    // 在SPI FLASH挂载文件系统，会初始化设备
+    fRes = f_mount(&fs, physicalNum, 1); // 文件对象，设备编号，立即重载
     
-    // 发送数据
-    if(SPI_FLASH_PageWrite(data, ADDR, sizeof(data))==ERROR){
-        printf("数据写入失败\n");
-    }else{
-        printf("数据写入成功，len=%d\n", sizeof(data));
-    }
-    
-    // 读取数据
-    if(SPI_FLASH_ReadData(data2, ADDR, 100)==ERROR){
-        printf("数据写入失败\n");
-    }else{
-        printf("数据读取成功，data=%s\n", data2);
-    }
+    /************* 格式化测试 **************/
+    // 没有文件系统
+    if(fRes == FR_NO_FILESYSTEM){
+        printf("没有文件系统，即将进行格式化……\r\n");
         
+        // 格式化
+        parm.fmt = FM_FAT | FM_SFD;
+        parm.n_fat = 0; // 逻辑驱动器号
+        parm.align = 512; // 扇区大小
+        parm.n_root = 0;
+        parm.au_size = 0;
+        fRes = f_mkfs(physicalNum, &parm, rBuf, sizeof rBuf);
+        
+        if(fRes==FR_OK){
+            printf("已格式化文件系统\r\n");
+            // 重新挂载
+            fRes = f_mount(NULL, physicalNum, 1);
+            fRes = f_mount(&fs, physicalNum, 1);
+        }
+        
+    }
     
+    if(fRes==FR_OK){
+        printf("文件系统挂载成功");
+    }else{
+        printf("文件系统挂载失败 code=%d", fRes);
+        LED1_ON;
+    }
+   
     while(1){
         
         
