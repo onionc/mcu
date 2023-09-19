@@ -23,9 +23,17 @@ const char *physicalNum = "1:";
 u32 num; // 字节数
 
 
+#define FORCE_FORMAT    0   // 强制格式化
+#define WRITE_TEST      0   // 写数据测试
+#define READ_TEST       0   // 读数据测试
+
+
+FRESULT formatSpace(); // 格式化
+FRESULT miscellaneous(); // 获取详情
+
 int main(){
     u32 id;
-    MKFS_PARM parm;
+
     // led 初始化
     LED_GPIO_Config();
     LED1_OFF; // 1灯亮代表文件系统问题
@@ -41,24 +49,9 @@ int main(){
     
     /************* 格式化测试 **************/
     // 没有文件系统
-    if(fRes == FR_NO_FILESYSTEM){
-        printf("没有文件系统，即将进行格式化……\r\n");
-        
-        // 格式化
-        parm.fmt = FM_FAT | FM_SFD;
-        parm.n_fat = 0; // 逻辑驱动器号
-        parm.align = 512; // 扇区大小
-        parm.n_root = 0;
-        parm.au_size = 0;
-        fRes = f_mkfs(physicalNum, &parm, xBuf, sizeof xBuf);
-        
-        if(fRes==FR_OK){
-            printf("已格式化文件系统\r\n");
-            // 重新挂载
-            fRes = f_mount(NULL, physicalNum, 1);
-            fRes = f_mount(&fs, physicalNum, 1);
-        }
-        
+    if(FORCE_FORMAT || fRes == FR_NO_FILESYSTEM){
+        printf("没有文件系统\r\n");
+        fRes=formatSpace();
     }
     
     if(fRes==FR_OK){
@@ -67,7 +60,9 @@ int main(){
         printf("文件系统挂载失败 code=%d\r\n", fRes);
         LED1_ON;
     }
-    
+
+    printf("-----------------基本功能测试:-----------------\r\n");
+#if WRITE_TEST==1
     /************* 写数据测试 **************/
     fRes = f_open(&file, "1:a.txt", FA_CREATE_ALWAYS | FA_WRITE);
     if(fRes == FR_OK){
@@ -85,7 +80,9 @@ int main(){
         printf("打开文件失败\r\n");
         LED1_ON;
     }
-    
+#endif
+
+#if READ_TEST==1
     /************* 读数据测试 **************/
     fRes = f_open(&file, "1:a.txt", FA_OPEN_EXISTING | FA_READ);
     if(fRes == FR_OK){
@@ -105,6 +102,13 @@ int main(){
     
     // 取消挂载
     f_mount(NULL, physicalNum, 1);
+#endif
+    
+    /************ 获取设备信息等常用功能测试 ***************/
+    printf("-----------------常用功能测试-----------------\r\n");
+    if((fRes=miscellaneous()) != FR_OK){
+        printf("遇到错误 code=%d\r\n", fRes);
+    }
     
     while(1){
         
@@ -112,4 +116,72 @@ int main(){
     }
     
     return 0;
+}
+
+FRESULT formatSpace(){
+    MKFS_PARM parm;
+    printf("即将进行格式化……\r\n");
+        
+    // 格式化
+    parm.fmt = FM_FAT | FM_SFD;
+    parm.n_fat = 0; // 逻辑驱动器号
+    parm.align = 512; // 扇区大小
+    parm.n_root = 0;
+    parm.au_size = 0;
+    fRes = f_mkfs(physicalNum, &parm, xBuf, sizeof xBuf);
+    
+    if(fRes==FR_OK){
+        printf("已格式化文件系统\r\n");
+        // 重新挂载
+        fRes = f_mount(NULL, physicalNum, 1);
+        fRes = f_mount(&fs, physicalNum, 1);
+    }
+    return fRes;
+}
+
+FRESULT miscellaneous(){
+    DIR dir;
+    FATFS *pFs;
+    u32 freeClust, freeSect, totalSect;
+    
+    printf("设备信息获取：\r\n");
+    {
+        // 获取设备信息和簇大小（等于1扇区）
+        fRes = f_getfree(physicalNum, &freeClust, &pFs);
+        if(fRes!=FR_OK) return fRes;
+        // 计算总扇区个数和空扇区个数
+        totalSect = (pFs->n_fatent - 2)* pFs->csize;
+        freeSect = freeClust * pFs->csize;
+        
+        // 可用空间按扇区更新，4K变化才刷新一次。
+        printf("设备总空间：%10lu KB, 可用空间 %10lu KB\r\n", totalSect*4, freeSect*4);
+    }
+    
+    printf("文件定位功能：\r\n");
+    if(1){
+        fRes = f_open(&file, "1:b.txt", FA_OPEN_ALWAYS | FA_WRITE | FA_READ);
+        if(fRes!=FR_OK) return fRes;
+
+        // 文件定位到末尾
+        printf("file seek:%lu\r\n", f_size(&file));
+        fRes = f_lseek(&file, f_size(&file));
+        if(fRes!=FR_OK) return fRes;
+        
+        f_printf(&file, "\n追加一行, 当前文件大小：%lu\n 设备总空间：%10lu KB, 可用空间 %10lu KB\n", f_size(&file), totalSect*4, freeSect*4);
+        
+        // 定位到起始位置
+        fRes = f_lseek(&file, 0);
+        if(fRes!=FR_OK) return fRes;
+        
+        // 读取数据
+        //fRes = f_read(&file, rBuf, f_size(&file), &num);
+        //if(fRes!=FR_OK) return fRes;
+        //printf("文件内容为：%s\r\n", rBuf);
+        
+        f_close(&file);
+    }
+    
+    
+    
+    return FR_OK;
 }
