@@ -12,10 +12,15 @@
 FATFS fs;           //文件系统对象
 FIL file;           // 文件对象
 FRESULT fRes;      // 文件操作结果
-BYTE rBuf[FF_MAX_SS]={0};
-BYTE wBuf[] = "";
+BYTE xBuf[FF_MAX_SS]={0}; // 操作数据buffer
+BYTE rBuf[4000]={0}; // 读数据buffer
+BYTE wBuf[] = "壬戌之秋，七月既望，苏子与客泛舟游于赤壁之下。清风徐来，水波不兴。举酒属客，诵明月之诗，歌窈窕之章。少焉，月出于东山之上，徘徊于斗牛之间。白露横江，水光接天。纵一苇之所如，凌万顷之茫然。浩浩乎如冯虚御风，而不知其所止；飘飘乎如遗世独立，羽化而登仙。(冯 通：凭)\
+　　于是饮酒乐甚，扣舷而歌之。歌曰：“桂棹兮兰桨，击空明兮溯流光。渺渺兮予怀，望美人兮天一方。”客有吹洞箫者，倚歌而和之。其声呜呜然，如怨如慕，如泣如诉；余音袅袅，不绝如缕。舞幽壑之潜蛟，泣孤舟之嫠妇。\
+　　苏子愀然，正襟危坐而问客曰：“何为其然也？”客曰：“‘月明星稀，乌鹊南飞’，此非曹孟德之诗乎？西望夏口，东望武昌，山川相缪，郁乎苍苍，此非孟德之困于周郎者乎？方其破荆州，下江陵，顺流而东也，舳舻千里，旌旗蔽空，酾酒临江，横槊赋诗，固一世之雄也，而今安在哉？况吾与子渔樵于江渚之上，侣鱼虾而友麋鹿，驾一叶之扁舟，举匏樽以相属。寄蜉蝣于天地，渺沧海之一粟。哀吾生之须臾，羡长江之无穷。挟飞仙以遨游，抱明月而长终。知不可乎骤得，托遗响于悲风。”\
+　　苏子曰：“客亦知夫水与月乎？逝者如斯，而未尝往也；盈虚者如彼，而卒莫消长也。盖将自其变者而观之，则天地曾不能以一瞬；自其不变者而观之，则物与我皆无尽也，而又何羡乎！且夫天地之间，物各有主，苟非吾之所有，虽一毫而莫取。惟江上之清风，与山间之明月，耳得之而为声，目遇之而成色，取之无禁，用之不竭。是造物者之无尽藏也，而吾与子之所共适。”(共适 一作：共食)\
+　　客喜而笑，洗盏更酌。肴核既尽，杯盘狼籍。相与枕藉乎舟中，不知东方之既白。";
 const char *physicalNum = "1:";
-
+u32 num; // 字节数
 
 
 int main(){
@@ -45,7 +50,7 @@ int main(){
         parm.align = 512; // 扇区大小
         parm.n_root = 0;
         parm.au_size = 0;
-        fRes = f_mkfs(physicalNum, &parm, rBuf, sizeof rBuf);
+        fRes = f_mkfs(physicalNum, &parm, xBuf, sizeof xBuf);
         
         if(fRes==FR_OK){
             printf("已格式化文件系统\r\n");
@@ -57,12 +62,50 @@ int main(){
     }
     
     if(fRes==FR_OK){
-        printf("文件系统挂载成功");
+        printf("文件系统挂载成功\r\n");
     }else{
-        printf("文件系统挂载失败 code=%d", fRes);
+        printf("文件系统挂载失败 code=%d\r\n", fRes);
         LED1_ON;
     }
-   
+    
+    /************* 写数据测试 **************/
+    fRes = f_open(&file, "1:a.txt", FA_CREATE_ALWAYS | FA_WRITE);
+    if(fRes == FR_OK){
+        printf("打开文件成功，准备写入数据\r\n");
+        fRes = f_write(&file, wBuf, sizeof wBuf, &num);
+        if(fRes == FR_OK){
+            printf("文件写入成功，写入字节数：%u\r\n", num);
+            
+        }else{
+            printf("文件写入失败\r\n");
+        }
+        // 关闭文件
+        f_close(&file);
+    }else{
+        printf("打开文件失败\r\n");
+        LED1_ON;
+    }
+    
+    /************* 读数据测试 **************/
+    fRes = f_open(&file, "1:a.txt", FA_OPEN_EXISTING | FA_READ);
+    if(fRes == FR_OK){
+        printf("打开文件成功，准备读取数据\r\n");
+        fRes = f_read(&file, rBuf, sizeof rBuf, &num);
+        if(fRes == FR_OK){
+            printf("文件读取成功，字节数：%u\r\n 内容：\r\n%s\r\n", num, rBuf);
+        }else{
+            printf("文件读写失败\r\n");
+        }
+        // 关闭文件
+        f_close(&file);
+    }else{
+        printf("打开文件失败\r\n");
+        LED1_ON;
+    }
+    
+    // 取消挂载
+    f_mount(NULL, physicalNum, 1);
+    
     while(1){
         
         
