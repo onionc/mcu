@@ -29,7 +29,9 @@ u32 num; // 字节数
 
 
 FRESULT formatSpace(); // 格式化
-FRESULT miscellaneous(); // 获取详情
+FRESULT normalFuncTest(); // 常用方法测试
+FRESULT fileInfo(); // 文件详情
+FRESULT scanFiles(); // 扫描文件
 
 int main(){
     u32 id;
@@ -106,7 +108,7 @@ int main(){
     
     /************ 获取设备信息等常用功能测试 ***************/
     printf("-----------------常用功能测试-----------------\r\n");
-    if((fRes=miscellaneous()) != FR_OK){
+    if((fRes=normalFuncTest()) != FR_OK){
         printf("遇到错误 code=%d\r\n", fRes);
     }
     
@@ -139,7 +141,7 @@ FRESULT formatSpace(){
     return fRes;
 }
 
-FRESULT miscellaneous(){
+FRESULT normalFuncTest(){
     DIR dir;
     FATFS *pFs;
     u32 freeClust, freeSect, totalSect;
@@ -181,7 +183,47 @@ FRESULT miscellaneous(){
         f_close(&file);
     }
     
+    printf("目录创建、文件删除和重命名：\r\n");
+    if(0){
+        // 目录创建
+        fRes = f_opendir(&dir, "1:doc");
+        if(fRes!=FR_OK){
+            printf("创建目录\r\n");
+            fRes = f_mkdir("1:doc");
+            if(fRes!=FR_OK) return fRes;
+        }else{
+            printf("目录已存在，关闭目录\r\n");
+            fRes = f_closedir(&dir);
+            if(fRes!=FR_OK) return fRes;
+        }
+        
+        // 文件重命名
+        printf("文件重命名\r\n");
+        fRes = f_rename("1:b.txt", "1:c.txt");
+        if(fRes!=FR_OK) return fRes;
+        
+        // 文件删除
+        printf("删除文件\r\n");
+        fRes = f_unlink("1:c.txt");
+        if(fRes!=FR_OK) return fRes;
+    }
     
+    return FR_OK;
+}
+
+FRESULT fileInfo(){
+    FILINFO info;
     
+    fRes = f_stat("1:a.txt", &info);
+    if(fRes!=FR_OK) return fRes;
+    
+    printf("1:a.txt文件信息：");
+    printf("文件大小：", info.fsize );
+    
+    return FR_OK;
+}
+
+FRESULT scanFiles(){
+
     return FR_OK;
 }
