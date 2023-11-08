@@ -582,7 +582,21 @@ void SD_DeInit(void)
 SD_Error SD_Init(void)
 {
   __IO SD_Error errorstatus = SD_OK;
-  
+    
+    // ≈‰÷√÷–∂œ
+    
+    NVIC_InitTypeDef NVIC_InitStructure;
+    NVIC_PriorityGroupConfig (NVIC_PriorityGroup_1);
+    // SDIO Interrupt ENABLE
+    NVIC_InitStructure.NVIC_IRQChannel = SDIO_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelSubPriority = 0;
+    NVIC_InitStructure.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&NVIC_InitStructure);
+    // DMA2 STREAMx Interrupt ENABLE
+    NVIC_InitStructure.NVIC_IRQChannel = SD_SDIO_DMA_IRQn;
+    NVIC_InitStructure.NVIC_IRQChannelPreemptionPriority = 1;
+    NVIC_Init(&NVIC_InitStructure);
   /* SDIO Peripheral Low Level Init */
    SD_LowLevel_Init();
   
