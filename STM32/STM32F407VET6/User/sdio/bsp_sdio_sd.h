@@ -38,7 +38,7 @@
 /* Includes ------------------------------------------------------------------*/
 #include "stm32f4xx.h"
 
-     
+
      /******************* start：从stm324x9i_eval.h文件移植代码 ***************************/
 /**
   * @brief  SD FLASH SDIO Interface
@@ -274,6 +274,7 @@ typedef struct
   uint8_t CardType;
 } SD_CardInfo;
 
+extern SD_CardInfo SDCardInfo;
 /**
   * @}
   */
