@@ -586,7 +586,6 @@ SD_Error SD_Init(void)
     // 配置中断
     
     NVIC_InitTypeDef NVIC_InitStructure;
-    NVIC_PriorityGroupConfig (NVIC_PriorityGroup_1);
     // SDIO Interrupt ENABLE
     // 优先级，主都为1(把0留给其他重要中断)，子分别为0和1
     NVIC_InitStructure.NVIC_IRQChannel = SDIO_IRQn;
