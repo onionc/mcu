@@ -5,6 +5,7 @@
  * 1. 使能RX和TX引脚GPIO时钟和USART时钟；
  * 2. 初始化GPIO，并将GPIO复用到USART上；
  * 3. 配置USART参数；
+ * （4. 配置中断控制）
  * 5. 使能USART；
  */
 void Usart1_Cfg(uint32_t baudrate){
@@ -43,10 +44,10 @@ void Usart1_Cfg(uint32_t baudrate){
     USART_Cmd(USART1, ENABLE);
 }
 
-void Usart2_Cfg(uint32_t baudrate){
+void Usart2_Cfg(uint32_t baudrate, char tx){
     GPIO_InitTypeDef gpioInit;
     USART_InitTypeDef usartInit;
-    
+    NVIC_InitTypeDef nvicInit;
     // 1. 使能RX和TX引脚GPIO时钟和USART时钟；
     RCC_AHB1PeriphClockCmd(USART2_TX_GPIO_CLK | USART2_RX_GPIO_CLK | RS485_RE_GPIO_CLK, ENABLE);
     USART2_CLOCK_CMD(USART2_CLK, ENABLE);
@@ -73,7 +74,20 @@ void Usart2_Cfg(uint32_t baudrate){
     gpioInit.GPIO_Pin = RS485_RE_PIN;
     gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(RS485_RE_GPIO_PORT, &gpioInit);
-    
+    // 配置中断并使能
+    {
+        // 配置中断源为USART2
+        nvicInit.NVIC_IRQChannel = USART2_IRQn;
+        // 配置主优先级（抢占优先级）
+        nvicInit.NVIC_IRQChannelPreemptionPriority = 0;
+        // 配置子优先级
+        nvicInit.NVIC_IRQChannelSubPriority = 0;
+        // 使能中断
+        nvicInit.NVIC_IRQChannelCmd = ENABLE;
+        // 初始化
+        NVIC_Init(&nvicInit);
+        USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
+    }
     // 3. 配置USART参数；
     usartInit.USART_BaudRate = baudrate;
     usartInit.USART_WordLength = USART_WordLength_8b;
@@ -87,10 +101,14 @@ void Usart2_Cfg(uint32_t baudrate){
     USART_Cmd(USART2, ENABLE);
     
     
-    // 485进入接收模式
-    // GPIO_ResetBits(RS485_RE_GPIO_PORT, RS485_RE_PIN);
-    // 485进入发送模式
-    GPIO_SetBits(RS485_RE_GPIO_PORT, RS485_RE_PIN);
+    
+    if(tx==1){
+        // 485进入发送模式
+        GPIO_SetBits(RS485_RE_GPIO_PORT, RS485_RE_PIN);
+    }else{
+        // 485进入接收模式
+        GPIO_ResetBits(RS485_RE_GPIO_PORT, RS485_RE_PIN);
+    }
 }
 
 void Usart3_Cfg(uint32_t baudrate){

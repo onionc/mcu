@@ -20,7 +20,7 @@ const char *physicalNum = "0:"; // 1是SPI FLASH, 0是SD卡
 u32 num; // 字节数
 
 
-#define FORCE_FORMAT    0   // 强制格式化
+#define FORCE_FORMAT    1   // 强制格式化
 #define WRITE_TEST      1   // 写数据测试
 #define READ_TEST       1   // 读数据测试
 #define SEEK_TEST       1   // 文件定位功能
@@ -134,14 +134,12 @@ FRESULT formatSpace(){
     printf("即将进行格式化……\r\n");
         
     // 格式化
-    
     parm.fmt = FM_FAT32 | FM_SFD; // 使用FAT32
     parm.n_fat = 0; // 逻辑驱动器号
-    parm.align = SDCardInfo.CardBlockSize; // 扇区大小
+    parm.align = 0; 
     parm.n_root = 0;
-    parm.au_size = 0;
+    parm.au_size = 4096; // 簇大小
     
-    // parm SD卡使用默认值可以正确格式化，用上面的会出现错误
     fRes = f_mkfs(physicalNum, &parm, xBuf, sizeof xBuf);
     
     if(fRes==FR_OK){

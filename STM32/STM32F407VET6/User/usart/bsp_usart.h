@@ -76,7 +76,7 @@
 
 // 串口配置函数
 void Usart1_Cfg(u32 baudrate);
-void Usart2_Cfg(u32 baudrate);
+void Usart2_Cfg(u32 baudrate, char tx); // 第二个参数是发送标志位，=0 启用485的接收，=1启用482的发送
 void Usart3_Cfg(u32 baudrate);
 // 发送一个字符
 void Usart_SendByte(USART_TypeDef* pUsart, u8 ch);
