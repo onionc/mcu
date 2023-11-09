@@ -6,7 +6,7 @@ u8 buffer[BLOCK_SIZE]={3};
 
 void SD_TEST(){
     SD_Error Status=SD_OK;
-
+    NVIC_PriorityGroupConfig (NVIC_PriorityGroup_1); // 配置NVIC 主1bit:子3bit
     // 初始化
     if((Status = SD_Init())!=SD_OK){
         printf("err, status = %d\r\n", Status);
