@@ -89,7 +89,7 @@ void Usart2_Cfg(uint32_t baudrate, char tx){
     }        
     USART_Init(USART2, &usartInit);
     
-    /*
+    
     // 4. 配置中断并使能
     {
         // 配置中断源为USART2
@@ -102,8 +102,8 @@ void Usart2_Cfg(uint32_t baudrate, char tx){
         nvicInit.NVIC_IRQChannelCmd = ENABLE;
         // 初始化
         NVIC_Init(&nvicInit);
-        USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
-    }*/
+        USART_ITConfig(USART2, USART_IT_IDLE, ENABLE); // 空闲中断
+    }
     
     // 5. 使能USART；
     USART_Cmd(USART2, ENABLE);

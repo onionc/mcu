@@ -7,7 +7,7 @@
 
   <Targets>
     <Target>
-      <TargetName>基于SD卡的FatFs文件系统</TargetName>
+      <TargetName>存储串口数据到SD卡</TargetName>
       <ToolsetNumber>0x4</ToolsetNumber>
       <ToolsetName>ARM-ADS</ToolsetName>
       <TargetOption>
