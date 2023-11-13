@@ -74,7 +74,23 @@ void Usart2_Cfg(uint32_t baudrate, char tx){
     gpioInit.GPIO_Pin = RS485_RE_PIN;
     gpioInit.GPIO_Speed = GPIO_Speed_50MHz;
     GPIO_Init(RS485_RE_GPIO_PORT, &gpioInit);
-    // 配置中断并使能
+    
+    // 3. 配置USART参数；
+    usartInit.USART_BaudRate = baudrate;
+    usartInit.USART_WordLength = USART_WordLength_8b;
+    usartInit.USART_StopBits = USART_StopBits_1;
+    usartInit.USART_Parity = USART_Parity_No;
+    usartInit.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
+    // usartInit.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
+    if(tx==1){
+        usartInit.USART_Mode = USART_Mode_Tx;
+    }else{
+        usartInit.USART_Mode = USART_Mode_Rx;
+    }        
+    USART_Init(USART2, &usartInit);
+    
+    /*
+    // 4. 配置中断并使能
     {
         // 配置中断源为USART2
         nvicInit.NVIC_IRQChannel = USART2_IRQn;
@@ -87,15 +103,7 @@ void Usart2_Cfg(uint32_t baudrate, char tx){
         // 初始化
         NVIC_Init(&nvicInit);
         USART_ITConfig(USART2, USART_IT_RXNE, ENABLE);
-    }
-    // 3. 配置USART参数；
-    usartInit.USART_BaudRate = baudrate;
-    usartInit.USART_WordLength = USART_WordLength_8b;
-    usartInit.USART_StopBits = USART_StopBits_1;
-    usartInit.USART_Parity = USART_Parity_No;
-    usartInit.USART_HardwareFlowControl = USART_HardwareFlowControl_None;
-    usartInit.USART_Mode = USART_Mode_Rx | USART_Mode_Tx;
-    USART_Init(USART2, &usartInit);
+    }*/
     
     // 5. 使能USART；
     USART_Cmd(USART2, ENABLE);

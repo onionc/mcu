@@ -3,9 +3,22 @@
 #include "./led/bsp_led.h"
 #include "./usart/bsp_usart.h"
 #include "./ff.h"
-#include <string.h>
 #include "../sdio/bsp_sdio_sd.h"
+#include <string.h>
 
+/* DMA 宏定义 */
+#define USART2_DR_BASE      (USART2_BASE+0x04)   // +0x04是USART的数据寄存器地址
+#define USARTx_DMA_CLK      RCC_AHB1Periph_DMA1
+#define USARTx_DMA_STREAM   DMA1_Stream5
+#define USARTx_DMA_CHANNEL  DMA_Channel_4
+#define RECV_BUF_SIZE       10 // 一次接收的数据量
+#define TIMEOUT_MAX         10000
+u8 RxBuf[RECV_BUF_SIZE] = {0};
+u8 RxBuf2[RECV_BUF_SIZE] = {0};
+// DMA配置函数，存储器到外设（USART2.DR)
+ErrorStatus DMA_Cfg(void);
+void DMA1_Stream5_IRQHandler(void);
+    
 // 变量定义
 FATFS fs;           //文件系统对象
 FIL file;           // 文件对象
@@ -45,24 +58,31 @@ int main(){
     u32 rxCount = 0;
     u32 rxCount2 = 0;
     
-
-    
     // 配置NVIC优先级分组为1(1位主优先级，3位子优先级)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
-    
+
     // led 初始化
     LED_GPIO_Config();
     LED1_OFF; // 1灯亮代表文件系统问题
     LED2_OFF;
     LED3_OFF;
-    
-    
+
     // 初始化usart，usart2口是485，0代表接收模式
     Usart2_Cfg(921600, 0);
-    Usart1_Cfg(9600);
-    
+    Usart1_Cfg(115200);
     
     printf("串口初始化成功\r\n");
+    
+    // dma配置
+    {
+        // 配置使用DMA
+        if(DMA_Cfg()==ERROR){
+            printf("DMA初始化失败\r\n");
+        }else{
+            printf("DMA初始化成功\r\n");
+        }
+        
+    }
     
 
     // 挂载SD卡
@@ -95,6 +115,8 @@ int main(){
     }
 
     while(1){
+        
+        /*
         if(RxFlag){
            ;
             if(rxCount < sizeof(rxBuf)){
@@ -127,6 +149,7 @@ int main(){
                 f_mount(NULL, physicalNum, 1);
             }
         }
+        */
 
     }
     
@@ -254,4 +277,127 @@ FRESULT fileInfo(){
 FRESULT scanFiles(){
 
     return FR_OK;
+}
+
+
+// DMA配置函数，存储器到外设（USART1.DR)
+ErrorStatus DMA_Cfg(void){
+    DMA_InitTypeDef dmaInit;
+    u32 timeout = TIMEOUT_MAX;
+    NVIC_InitTypeDef nvicInit;
+    
+    // 使能 DMA时钟
+    RCC_AHB1PeriphClockCmd(USARTx_DMA_CLK, ENABLE);
+    
+    // 复位DMA数据流
+    DMA_DeInit(USARTx_DMA_STREAM);
+    
+    // 等待复位完成
+    while(DMA_GetCmdStatus(USARTx_DMA_STREAM) != DISABLE);
+    
+    // 配置 dma。usart2.Rx对应dma1,通道4，数据流5
+    dmaInit.DMA_Channel = USARTx_DMA_CHANNEL; // DMA数据流通道
+    dmaInit.DMA_PeripheralBaseAddr = (u32)USART2_DR_BASE; // 外设地址：UART1的数据寄存器地址
+    dmaInit.DMA_Memory0BaseAddr = (u32)RxBuf; // 存储器地址：内存地址
+    dmaInit.DMA_DIR = DMA_DIR_PeripheralToMemory; // 模式：外设到存储器
+    dmaInit.DMA_BufferSize = (u32)RECV_BUF_SIZE; // 数据大小
+    dmaInit.DMA_PeripheralInc = DMA_PeripheralInc_Disable; // 使能外设地址不自动递增
+    dmaInit.DMA_MemoryInc = DMA_MemoryInc_Enable; // 使能存储器自动递增
+    dmaInit.DMA_PeripheralDataSize = DMA_PeripheralDataSize_Byte; // 源数据宽度：字节大小 8bit
+    dmaInit.DMA_MemoryDataSize = DMA_MemoryDataSize_Byte; // 目标数据宽度：字节大小
+    dmaInit.DMA_Mode = DMA_Mode_Circular; // 模式：循环
+    dmaInit.DMA_Priority = DMA_Priority_Medium; // 数据流优先级：中
+    dmaInit.DMA_FIFOMode = DMA_FIFOMode_Disable; // FIFO模式不使能，FIFOThreshold阈值无效
+    dmaInit.DMA_FIFOThreshold = DMA_FIFOThreshold_Full;
+    dmaInit.DMA_MemoryBurst = DMA_MemoryBurst_Single;  // 存储器突发模式：单次
+    dmaInit.DMA_PeripheralBurst = DMA_PeripheralBurst_Single; // 外设突发模式：单次
+    DMA_Init(USARTx_DMA_STREAM, &dmaInit); // 配置DMA，上面为单缓冲
+    // USART1 向 DMA发出RX请求
+    USART_DMACmd(USART2, USART_DMAReq_Rx, ENABLE);
+    
+    // 双缓冲开启
+    DMA_DoubleBufferModeConfig(USARTx_DMA_STREAM, (u32)RxBuf2, DMA_Memory_0);
+    DMA_DoubleBufferModeCmd(USARTx_DMA_STREAM, ENABLE);
+    
+    // 使能DMA中断
+    DMA_ITConfig(USARTx_DMA_STREAM, DMA_IT_TC, ENABLE); // 传输完成和错误中断
+    DMA_ClearITPendingBit(USARTx_DMA_STREAM, DMA_IT_TCIF5);
+    
+    // 配置DMA中断向量和优先级
+    nvicInit.NVIC_IRQChannel = DMA1_Stream5_IRQn;
+    nvicInit.NVIC_IRQChannelPreemptionPriority = 0;
+    nvicInit.NVIC_IRQChannelSubPriority = 0;
+    nvicInit.NVIC_IRQChannelCmd = ENABLE;
+    NVIC_Init(&nvicInit);
+    
+    
+    // 使能DMA数据流
+    DMA_Cmd(USARTx_DMA_STREAM, ENABLE);
+    
+    
+    // 检测数据流是否有效
+    while((DMA_GetCmdStatus(USARTx_DMA_STREAM) != ENABLE) && (timeout-- > 0)){}
+    
+    // 判断是否超时
+    if(timeout==0){
+        return ERROR;
+    }
+        
+    return SUCCESS;
+}
+char bufT[11]={0};
+int len1=0, len2=0;
+void DMA1_Stream5_IRQHandler(void){
+    
+    if(DMA_GetITStatus(DMA1_Stream5, DMA_IT_TCIF5)==SET){
+
+        //重新设置DMA
+        //DMA_Cmd(DMA1_Stream5, DISABLE);
+        if(DMA_GetCurrentMemoryTarget(DMA1_Stream5)==0)	//当前目标内存为 DMA_Memory_0
+        {
+            ;
+            //len1 = DMA_GetCurrDataCounter(DMA1_Stream5);	//获取当前剩余数据量
+
+            //DMA_SetCurrDataCounter(DMA1_Stream5, 10);	//重新设置数据量
+            //if(len1 > 0)	//接收成功18个字节长度
+            {
+                // 获取 Memory_1
+                memcpy(bufT, RxBuf, 10);
+                printf("0buf0 = %s\n", bufT);
+                memcpy(bufT, RxBuf2, 10);
+                printf("0buf1 = %s\n", bufT);
+                //memset(RxBuf, 0, 10);
+                //memset(RxBuf2, 0, 10);
+            }
+            
+
+        }
+        else	//当前目标内存为 DMA_Memory_1
+        {
+            //重新设置DMA
+            //DMA_Cmd(DMA1_Stream5, DISABLE);
+            //len1 = DMA_GetCurrDataCounter(DMA1_Stream5);		//获取当前剩余数据量
+
+            //DMA_SetCurrDataCounter(DMA1_Stream5, 10);	//重新设置数据量
+            
+            //if( len1>0)	//接收成功18个字节长度
+            {
+                // 获取 Memory_0
+                //printf("1buf = %s\r\n", RxBuf);
+                  memcpy(bufT, RxBuf, 10);
+                printf("1buf0 = %s\n", bufT);
+                memcpy(bufT, RxBuf2, 10);
+                printf("1buf1 = %s\n", bufT);
+                //memset(RxBuf, 0, 10);
+                //memset(RxBuf2, 0, 10);
+
+            }
+            
+        }
+    
+        // 清除中断标志位
+    
+        DMA_ClearITPendingBit(USARTx_DMA_STREAM, DMA_IT_TCIF5);
+        //DMA_Cmd(DMA1_Stream5, ENABLE);
+    }
 }
