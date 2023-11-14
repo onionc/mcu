@@ -43,13 +43,11 @@ FRESULT scanFiles(); // 扫描文件
 
 // 中断处理函数
 u8 RxFlag=0;
-u8 chTemp=0;
-
 char bufT[RECV_BUF_SIZE+1]={0};
-int recvLen;
-int len2=0;
+u8 bufTempLen = 0;
 void USART2_IRQHandler(void){
-    
+    u8 temp;
+    int recvLen;
     // 串口空闲中断
     if(USART_GetITStatus(USART2, USART_IT_IDLE)!=RESET){
         // 读取DMA中的数据
@@ -60,10 +58,11 @@ void USART2_IRQHandler(void){
             
             DMA_SetCurrDataCounter(USARTx_DMA_STREAM, RECV_BUF_SIZE); // 需要把计数设置回去
             if(recvLen>0){
-                //RxFlag = 1;
+                RxFlag = 1;
+                // 赋值给临时数组
                 memcpy(bufT, RxBuf, recvLen);
                 bufT[recvLen]=0;
-                printf("len=%d, %s\n", recvLen, bufT);
+                bufTempLen = recvLen;
             }
             
             DMA_ClearFlag(USARTx_DMA_STREAM, DMA_FLAG_TCIF5); // DMA传输完成中断清零
@@ -73,8 +72,8 @@ void USART2_IRQHandler(void){
         }
         
         // 清除IDLE标志
-        chTemp = USART2->SR;
-        chTemp = USART2->DR;
+        temp = USART2->SR;
+        temp = USART2->DR;
     }
     
 }
@@ -84,7 +83,6 @@ int main(){
     u32 id;
     u8 rxBuf[256]={0};
     u32 rxCount = 0;
-    u32 rxCount2 = 0;
     
     // 配置NVIC优先级分组为1(1位主优先级，3位子优先级)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
@@ -145,36 +143,32 @@ int main(){
     while(1){
         if(RxFlag>0){
             
-                //memcpy(bufT, RxBuf, 10);
-               
+            
+             // 空闲时写数据
+            if(bufTempLen>0){
+                // 写数据到文件，未保存
+                rxCount += bufTempLen;
+                
+                fRes = f_write(&file, bufT, bufTempLen, &num);
+                if(fRes != FR_OK || num<1){
+                    LED2_ON;
+                }
+                
+                bufTempLen = 0;
+            }
+            
+            // 数据大于FatFs缓冲区的一半，保存到文件中
+            if(rxCount>FF_MAX_SS/2){
+                // 保存文件
+                f_sync(&file);
+                rxCount=0;
+                
+                LED3_TOGGLE;
+            }
             
             RxFlag = 0;
             
         }
-        /*
-        // 空闲时写数据
-        if(rxCount>0){
-            
-            rxCount2 += rxCount;
-            
-            
-            fRes = f_write(&file, rxBuf, rxCount, &num);
-            if(fRes != FR_OK || num<1){
-                LED2_ON;
-            }
-            
-            rxCount = 0;
-        }
-        
-        if(rxCount2>1000){
-            LED3_ON;
-            // 关闭文件
-            f_close(&file);
-            // 取消挂载
-            f_mount(NULL, physicalNum, 1);
-        }
-    
-        */
 
     }
     
