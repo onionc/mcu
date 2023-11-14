@@ -6,15 +6,17 @@
 #include "../sdio/bsp_sdio_sd.h"
 #include <string.h>
 
+#define FRAME_LEN   300  // 一帧长度
+#define BUF_COUNT   6 // 几个缓存区，文件保存需要时间大概10~20ms，开几个缓冲区来搞
 /* DMA 宏定义 */
 #define USART2_DR_BASE      (USART2_BASE+0x04)   // +0x04是USART的数据寄存器地址
 #define USARTx_DMA_CLK      RCC_AHB1Periph_DMA1
 #define USARTx_DMA_STREAM   DMA1_Stream5
 #define USARTx_DMA_CHANNEL  DMA_Channel_4
-#define RECV_BUF_SIZE       100 // 一次接收的数据量
+#define RECV_BUF_SIZE       FRAME_LEN // DMA接收的数据量，需大于一帧数据（有时间来等待空闲）
 #define TIMEOUT_MAX         10000
 u8 RxBuf[RECV_BUF_SIZE] = {0};
-u8 RxBuf2[RECV_BUF_SIZE] = {0};
+
 // DMA配置函数，存储器到外设（USART2.DR)
 ErrorStatus DMA_Cfg(void);
 void DMA1_Stream5_IRQHandler(void);
@@ -43,8 +45,16 @@ FRESULT scanFiles(); // 扫描文件
 
 // 中断处理函数
 u8 RxFlag=0;
-char bufT[RECV_BUF_SIZE+1]={0};
-u8 bufTempLen = 0;
+char bufT[RECV_BUF_SIZE];
+char bufT1[RECV_BUF_SIZE];
+char bufT2[RECV_BUF_SIZE];
+char bufT3[RECV_BUF_SIZE];
+char bufT4[RECV_BUF_SIZE];
+char bufT5[RECV_BUF_SIZE];
+u16 bufTempLen = 0, bufTempLen1=0, bufTempLen2=0, bufTempLen3=0, bufTempLen4=0, bufTempLen5=0;
+u32 rxCount = 0;
+
+int bufIndex=0,useIndex=0;
 void USART2_IRQHandler(void){
     u8 temp;
     int recvLen;
@@ -59,10 +69,32 @@ void USART2_IRQHandler(void){
             DMA_SetCurrDataCounter(USARTx_DMA_STREAM, RECV_BUF_SIZE); // 需要把计数设置回去
             if(recvLen>0){
                 RxFlag = 1;
-                // 赋值给临时数组
-                memcpy(bufT, RxBuf, recvLen);
-                bufT[recvLen]=0;
-                bufTempLen = recvLen;
+                
+                if(bufIndex==0){
+                    // 赋值给临时数组
+                    memcpy(bufT, RxBuf, recvLen);
+                    bufTempLen = recvLen;
+                }else if(bufIndex==1){
+                    memcpy(bufT1, RxBuf, recvLen);
+                    bufTempLen1 = recvLen;
+                }else if(bufIndex==2){
+                    memcpy(bufT2, RxBuf, recvLen);
+                    bufTempLen2 = recvLen;
+                }else if(bufIndex==3){
+                    memcpy(bufT3, RxBuf, recvLen);
+                    bufTempLen3 = recvLen;
+                }else if(bufIndex==4){
+                    memcpy(bufT4, RxBuf, recvLen);
+                    bufTempLen4 = recvLen;
+                }else if(bufIndex==5){
+                    memcpy(bufT5, RxBuf, recvLen);
+                    bufTempLen5 = recvLen;
+                }
+                
+                bufIndex++;
+                bufIndex%=BUF_COUNT;
+                
+            
             }
             
             DMA_ClearFlag(USARTx_DMA_STREAM, DMA_FLAG_TCIF5); // DMA传输完成中断清零
@@ -82,7 +114,7 @@ void USART2_IRQHandler(void){
 int main(){
     u32 id;
     u8 rxBuf[256]={0};
-    u32 rxCount = 0;
+
     
     // 配置NVIC优先级分组为1(1位主优先级，3位子优先级)
     NVIC_PriorityGroupConfig(NVIC_PriorityGroup_1);
@@ -143,31 +175,61 @@ int main(){
     while(1){
         if(RxFlag>0){
             
-            
-             // 空闲时写数据
-            if(bufTempLen>0){
+            while(useIndex!=bufIndex){
                 // 写数据到文件，未保存
-                rxCount += bufTempLen;
+                switch(useIndex){
+                    case 0:
+                        rxCount += bufTempLen;
+                        fRes = f_write(&file, bufT, bufTempLen, &num);
+                        bufTempLen = 0;
+                        break;
+                    case 1:
+                        rxCount += bufTempLen1;
+                        fRes = f_write(&file, bufT1, bufTempLen1, &num);
+                        bufTempLen1 = 0;
+                        break;
+                    case 2:
+                        rxCount += bufTempLen2;
+                        fRes = f_write(&file, bufT2, bufTempLen2, &num);
+                        bufTempLen2 = 0;
+                        break;
+                    case 3:
+                        rxCount += bufTempLen3;
+                        fRes = f_write(&file, bufT3, bufTempLen3, &num);
+                        bufTempLen3 = 0;
+                        break;
+                    case 4:
+                        rxCount += bufTempLen4;
+                        fRes = f_write(&file, bufT4, bufTempLen4, &num);
+                        bufTempLen4 = 0;
+                        break;
+                    case 5:
+                        rxCount += bufTempLen5;
+                        fRes = f_write(&file, bufT5, bufTempLen5, &num);
+                        bufTempLen5 = 0;
+                        break;
+                }
                 
-                fRes = f_write(&file, bufT, bufTempLen, &num);
                 if(fRes != FR_OK || num<1){
                     LED2_ON;
                 }
                 
-                bufTempLen = 0;
+                useIndex++;
+                useIndex%=BUF_COUNT;
             }
+
             
-            // 数据大于FatFs缓冲区的一半，保存到文件中
-            if(rxCount>FF_MAX_SS/2){
+            // 保存到文件
+            if(rxCount>FF_MAX_SS-FRAME_LEN*BUF_COUNT){
                 // 保存文件
                 f_sync(&file);
+                
                 rxCount=0;
                 
                 LED3_TOGGLE;
             }
             
             RxFlag = 0;
-            
         }
 
     }
