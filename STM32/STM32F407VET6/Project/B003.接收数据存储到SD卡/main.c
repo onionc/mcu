@@ -6,15 +6,15 @@
 #include "../sdio/bsp_sdio_sd.h"
 #include <string.h>
 
-#define FRAME_LEN   300  // 一帧长度
-#define BUF_COUNT   10 // 创建缓存区个数，文件保存需要时间大概10~20ms，需要开几个缓冲区来存数据。建议大小为 2~10，可使用 20ms/一帧数据时间（如5ms）*2 
+#define FRAME_LEN   167  // 一帧长度
+#define BUF_COUNT   40 // 创建缓存区个数，文件保存需要时间大概10~20ms，需要开几个缓冲区来存数据。丢数则加大数量！！！主要修改参数！！！
 #define SAVE_BYTES 30000 // 等待多少字节保存一次，大于一个扇区的用f_write都会写入flash，所以这个大小可以很大，不必是FatFs buffer的大小，建议赋值为待采集系统写入1s的字节数（会闪LED）。会丢最后不足此字节数量的数据
 /* DMA 宏定义 */
 #define USART2_DR_BASE      (USART2_BASE+0x04)   // +0x04是USART的数据寄存器地址
 #define USARTx_DMA_CLK      RCC_AHB1Periph_DMA1
 #define USARTx_DMA_STREAM   DMA1_Stream5
 #define USARTx_DMA_CHANNEL  DMA_Channel_4
-#define RECV_BUF_SIZE       FRAME_LEN // DMA接收的数据量，需大于一帧数据（有时间来等待空闲）
+#define RECV_BUF_SIZE       FRAME_LEN*2 // DMA接收的数据量，需大于一帧数据（有时间来等待空闲或帧发送多余一帧情况）
 #define TIMEOUT_MAX         10000
 u8 RxBuf[RECV_BUF_SIZE] = {0};
 
@@ -54,7 +54,7 @@ struct BUF_ARR_T{
 }; 
 
 struct BUF_ARR_T bufT[BUF_COUNT];
-int bufIndex=0,useIndex=0;
+u8 bufIndex=0,useIndex=0, bufIndex2;
 
 u32 rxCount = 0;
 
@@ -78,11 +78,18 @@ void USART2_IRQHandler(void){
                 memcpy(bufT[bufIndex].buffer, RxBuf, recvLen);
                 bufT[bufIndex].len = recvLen;
                 
-                bufIndex++;
-                bufIndex%=BUF_COUNT;
+                bufIndex2 = (bufIndex+1)%BUF_COUNT;
+                
+                if(bufIndex!=useIndex && bufIndex2==useIndex){
+                    // 缓冲区不够用了，核心监测点，很多丢数的情况都是这里不够了
+                    LED1_ON;
+                }
+                
+                bufIndex=bufIndex2;
+               
             
             }
-            
+                
             DMA_ClearFlag(USARTx_DMA_STREAM, DMA_FLAG_TCIF5); // DMA传输完成中断清零
             DMA_Cmd(USARTx_DMA_STREAM, ENABLE);
             
@@ -160,7 +167,7 @@ int main(){
 
     while(1){
   
-            
+         // 空闲中断每一帧都来，不在每一帧时写，
         while(useIndex!=bufIndex){
             // 写数据到文件，未保存
             rxCount+=bufT[useIndex].len;
