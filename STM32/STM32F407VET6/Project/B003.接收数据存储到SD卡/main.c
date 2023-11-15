@@ -7,7 +7,8 @@
 #include <string.h>
 
 #define FRAME_LEN   300  // 一帧长度
-#define BUF_COUNT   6 // 几个缓存区，文件保存需要时间大概10~20ms，开几个缓冲区来搞
+#define BUF_COUNT   10 // 创建缓存区个数，文件保存需要时间大概10~20ms，需要开几个缓冲区来存数据。建议大小为 2~10，可使用 20ms/一帧数据时间（如5ms）*2 
+#define SAVE_BYTES 30000 // 等待多少字节保存一次，大于一个扇区的用f_write都会写入flash，所以这个大小可以很大，不必是FatFs buffer的大小，建议赋值为待采集系统写入1s的字节数（会闪LED）。会丢最后不足此字节数量的数据
 /* DMA 宏定义 */
 #define USART2_DR_BASE      (USART2_BASE+0x04)   // +0x04是USART的数据寄存器地址
 #define USARTx_DMA_CLK      RCC_AHB1Periph_DMA1
@@ -45,16 +46,19 @@ FRESULT scanFiles(); // 扫描文件
 
 // 中断处理函数
 u8 RxFlag=0;
-char bufT[RECV_BUF_SIZE];
-char bufT1[RECV_BUF_SIZE];
-char bufT2[RECV_BUF_SIZE];
-char bufT3[RECV_BUF_SIZE];
-char bufT4[RECV_BUF_SIZE];
-char bufT5[RECV_BUF_SIZE];
-u16 bufTempLen = 0, bufTempLen1=0, bufTempLen2=0, bufTempLen3=0, bufTempLen4=0, bufTempLen5=0;
+
+// 缓冲区
+struct BUF_ARR_T{
+    char buffer[RECV_BUF_SIZE];
+    u16 len;
+}; 
+
+struct BUF_ARR_T bufT[BUF_COUNT];
+int bufIndex=0,useIndex=0;
+
 u32 rxCount = 0;
 
-int bufIndex=0,useIndex=0;
+
 void USART2_IRQHandler(void){
     u8 temp;
     int recvLen;
@@ -69,31 +73,13 @@ void USART2_IRQHandler(void){
             DMA_SetCurrDataCounter(USARTx_DMA_STREAM, RECV_BUF_SIZE); // 需要把计数设置回去
             if(recvLen>0){
                 RxFlag = 1;
-                
-                if(bufIndex==0){
-                    // 赋值给临时数组
-                    memcpy(bufT, RxBuf, recvLen);
-                    bufTempLen = recvLen;
-                }else if(bufIndex==1){
-                    memcpy(bufT1, RxBuf, recvLen);
-                    bufTempLen1 = recvLen;
-                }else if(bufIndex==2){
-                    memcpy(bufT2, RxBuf, recvLen);
-                    bufTempLen2 = recvLen;
-                }else if(bufIndex==3){
-                    memcpy(bufT3, RxBuf, recvLen);
-                    bufTempLen3 = recvLen;
-                }else if(bufIndex==4){
-                    memcpy(bufT4, RxBuf, recvLen);
-                    bufTempLen4 = recvLen;
-                }else if(bufIndex==5){
-                    memcpy(bufT5, RxBuf, recvLen);
-                    bufTempLen5 = recvLen;
-                }
+
+                // 赋值给缓冲区
+                memcpy(bufT[bufIndex].buffer, RxBuf, recvLen);
+                bufT[bufIndex].len = recvLen;
                 
                 bufIndex++;
                 bufIndex%=BUF_COUNT;
-                
             
             }
             
@@ -173,64 +159,33 @@ int main(){
     }
 
     while(1){
-        if(RxFlag>0){
+  
             
-            while(useIndex!=bufIndex){
-                // 写数据到文件，未保存
-                switch(useIndex){
-                    case 0:
-                        rxCount += bufTempLen;
-                        fRes = f_write(&file, bufT, bufTempLen, &num);
-                        bufTempLen = 0;
-                        break;
-                    case 1:
-                        rxCount += bufTempLen1;
-                        fRes = f_write(&file, bufT1, bufTempLen1, &num);
-                        bufTempLen1 = 0;
-                        break;
-                    case 2:
-                        rxCount += bufTempLen2;
-                        fRes = f_write(&file, bufT2, bufTempLen2, &num);
-                        bufTempLen2 = 0;
-                        break;
-                    case 3:
-                        rxCount += bufTempLen3;
-                        fRes = f_write(&file, bufT3, bufTempLen3, &num);
-                        bufTempLen3 = 0;
-                        break;
-                    case 4:
-                        rxCount += bufTempLen4;
-                        fRes = f_write(&file, bufT4, bufTempLen4, &num);
-                        bufTempLen4 = 0;
-                        break;
-                    case 5:
-                        rxCount += bufTempLen5;
-                        fRes = f_write(&file, bufT5, bufTempLen5, &num);
-                        bufTempLen5 = 0;
-                        break;
-                }
-                
-                if(fRes != FR_OK || num<1){
-                    LED2_ON;
-                }
-                
-                useIndex++;
-                useIndex%=BUF_COUNT;
+        while(useIndex!=bufIndex){
+            // 写数据到文件，未保存
+            rxCount+=bufT[useIndex].len;
+            fRes = f_write(&file, bufT[useIndex].buffer, bufT[useIndex].len, &num);
+            bufT[useIndex].len = 0;
+            
+            useIndex++;
+            useIndex%=BUF_COUNT;
+           
+            if(fRes != FR_OK || num<1){
+                LED2_ON;
             }
-
-            
-            // 保存到文件
-            if(rxCount>FF_MAX_SS-FRAME_LEN*BUF_COUNT){
-                // 保存文件
-                f_sync(&file);
-                
-                rxCount=0;
-                
-                LED3_TOGGLE;
-            }
-            
-            RxFlag = 0;
         }
+
+        
+        // 保存到文件。会丢最后不足设定
+        if(rxCount>SAVE_BYTES){
+            // 保存文件
+            f_sync(&file);
+            
+            rxCount=0;
+            
+            LED3_TOGGLE;
+        }
+
 
     }
     
