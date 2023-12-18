@@ -64,6 +64,9 @@ void Error_Handler(void);
 #define LED1_GPIO_Port GPIOA
 #define LED2_Pin GPIO_PIN_7
 #define LED2_GPIO_Port GPIOA
+#define CAN_INT_Pin GPIO_PIN_11
+#define CAN_INT_GPIO_Port GPIOA
+#define CAN_INT_EXTI_IRQn EXTI15_10_IRQn
 /* USER CODE BEGIN Private defines */
 
 /* USER CODE END Private defines */

@@ -71,8 +71,8 @@ Init_CAN(void)
 
 	/* Configure the MCAN core settings */
 	TCAN4x5x_MCAN_CCCR_Config cccrConfig = {0};					// Remember to initialize to 0, or you'll get random garbage!
-	cccrConfig.FDOE = 0;										// CAN FD mode enable
-	cccrConfig.BRSE = 0;										// CAN FD Bit rate switch enable
+	cccrConfig.FDOE = 1;										// CAN FD mode enable
+	cccrConfig.BRSE = 1;										// CAN FD Bit rate switch enable
 
 	/* Configure the default CAN packet filtering settings */
 	TCAN4x5x_MCAN_Global_Filter_Configuration gfc = {0};
@@ -163,7 +163,7 @@ Init_CAN(void)
 	devConfig.WD_ACTION = TCAN4x5x_DEV_CONFIG_WDT_ACTION_nINT;  // Watchdog set an interrupt (default)
 	devConfig.WD_BIT_RESET = 0;                                 // Don't reset the watchdog
 	devConfig.nWKRQ_VOLTAGE = 0;                                // Set nWKRQ to internal voltage rail (default)
-	devConfig.GPO2_CONFIG = TCAN4x5x_DEV_CONFIG_GPO2_NO_ACTION; // GPO2 has no behavior (default)
+	devConfig.GPO2_CONFIG = TCAN4x5x_DEV_CONFIG_GPO2_MCAN_INT0; // GPO2 中断开启，中断中处理接收数据
 	devConfig.CLK_REF = 1;                                      // Input crystal is a 40 MHz crystal (default)
 	devConfig.WAKE_CONFIG = TCAN4x5x_DEV_CONFIG_WAKE_BOTH_EDGES;// Wake pin can be triggered by either edge (default)
 	TCAN4x5x_Device_Configure(&devConfig);                      // Configure the device with the above configuration
@@ -173,6 +173,18 @@ Init_CAN(void)
 	TCAN4x5x_MCAN_ClearInterruptsAll();                         // Resets all MCAN interrupts (does NOT include any SPIERR interrupts)
 }
 
+
+volatile uint8_t TCAN_Int_Cnt = 0;					// A variable used to keep track of interrupts the MCAN Interrupt pin
+
+void HAL_GPIO_EXTI_Callback(uint16_t GPIO_Pin)
+{
+  switch(GPIO_Pin){
+      case CAN_INT_Pin:
+         
+        TCAN_Int_Cnt++;
+        break;
+  }
+}
 
 /* USER CODE END PM */
 
@@ -190,7 +202,6 @@ void SystemClock_Config(void);
 
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
-volatile uint8_t TCAN_Int_Cnt = 0;					// A variable used to keep track of interrupts the MCAN Interrupt pin
 
 /* USER CODE END 0 */
 
@@ -200,9 +211,8 @@ volatile uint8_t TCAN_Int_Cnt = 0;					// A variable used to keep track of inter
   */
 int main(void)
 {
-   
   /* USER CODE BEGIN 1 */
-
+  int i,j;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -230,15 +240,16 @@ int main(void)
     HAL_GPIO_WritePin(LED1_GPIO_Port, LED1_Pin, GPIO_PIN_RESET);
   HAL_GPIO_WritePin(LED2_GPIO_Port, LED2_Pin, GPIO_PIN_RESET);
   
-    printf("1");
+    // can 初始化
     Init_CAN();
     printf("can init.");
 
+    // 发送两帧数据，一个是普通CAN，一个是CANFD
     TCAN4x5x_MCAN_TX_Header header = {0};			// Remember to initialize to 0, or you'll get random garbage!
 	uint8_t data[4] = {0x55, 0x66, 0x77, 0x88};		// Define the data payload
 	header.DLC = MCAN_DLC_4B;						// Set the DLC to be equal to or less than the data payload (it is ok to pass a 64 byte data array into the WriteTXFIFO function if your DLC is 8 bytes, only the first 8 bytes will be read)
 	header.ID = 0x144;								// Set the ID
-	header.FDF = 0;									// CAN FD frame enabled
+	header.FDF = 1;									// CAN FD frame enabled
 	header.BRS = 1;									// Bit rate switch enabled
 	header.EFC = 0;
 	header.MM  = 0;
@@ -250,7 +261,8 @@ int main(void)
 
 	TCAN4x5x_MCAN_WriteTXBuffer(0, &header, data);	// This function actually writes the header and data payload to the TCAN's MRAM in the specified TX queue number. It returns the bit necessary to write to TXBAR,
 													// but does not necessarily require you to use it. In this example, we won't, so that we can send the data queued up at a later point.
-data[0] = 0x11;
+
+    data[0] = 0x11;
 	data[1] = 0x22;
 	data[2] = 0x33;
 	data[3] = 0x44;									// Define the data payload
@@ -283,6 +295,7 @@ data[0] = 0x11;
     //HAL_Delay(500);
     //HAL_GPIO_TogglePin(LED1_GPIO_Port, LED1_Pin);
       
+      // 接收数据
       if (TCAN_Int_Cnt > 0 )
 		{
 			TCAN_Int_Cnt--;
@@ -306,9 +319,16 @@ data[0] = 0x11;
 
 				// numBytes will have the number of bytes it transfered in it. Or you can decode the DLC value in MsgHeader.DLC
 				// The data is now in dataPayload[], and message specific information is in the MsgHeader struct.
-				if (MsgHeader.ID == 0x0AA)		// Example of how you can do an action based off a received address
+                
+				if (MsgHeader.ID >0)		// Example of how you can do an action based off a received address
 				{
-					// Do something
+                    printf("r...0x%x, len=%d\n", MsgHeader.ID, numBytes);
+                    if(numBytes>0){
+                        for(i=0; i<numBytes; i++){
+                            printf("%02x ", dataPayload[i]);
+                        }
+                        printf("\n");
+                    }
 				}
 			}
 		}
