@@ -22,6 +22,7 @@
 #include "i2c.h"
 #include "usart.h"
 #include "gpio.h"
+#include "MPU6050.h"
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
@@ -66,7 +67,10 @@ void SystemClock_Config(void);
 int main(void)
 {
   /* USER CODE BEGIN 1 */
-
+   short Acel[3]={0};
+   short Gyro[3]={0};
+   float Temp=0.0;
+   u8 t;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -91,15 +95,31 @@ int main(void)
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
 
+    // mpu 初始化
+    if(mpu_init()){
+        printf("mpu init error.");
+    }else{
+        printf("mpu init ok.");
+    }
+  
   /* USER CODE END 2 */
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
   while (1)
   {
+    
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
+    // 读取陀螺、加计、温度
+    mpu_get_gyro(&Gyro[0], &Gyro[1], &Gyro[2]);
+    mpu_get_acc(&Acel[0], &Acel[1], &Acel[2]);
+    Temp = mpu_get_temperature();
+    printf("%10d,%10d,%10d,%10d,%10d,%10d,%10f\n", Gyro[0], Gyro[1], Gyro[2], Acel[0], Acel[1], Acel[2], Temp);
+      
+    HAL_Delay(500);
+    
   }
   /* USER CODE END 3 */
 }
