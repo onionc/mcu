@@ -34,6 +34,19 @@ extern "C" {
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
 #include <stdio.h>
+#include "usart.h"
+#include "MPU6050.h"
+#include "inv_mpu.h"
+#include "inv_mpu_dmp_motion_driver.h"
+#include "invensense.h"
+#include "invensense_adv.h"
+#include "eMPL_outputs.h"
+#include "mltypes.h"
+#include "mpu.h"
+#include "log.h"
+#include "packet.h"
+  
+
 /* USER CODE END Includes */
 
 /* Exported types ------------------------------------------------------------*/

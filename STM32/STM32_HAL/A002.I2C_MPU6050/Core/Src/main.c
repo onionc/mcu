@@ -58,6 +58,7 @@ void SystemClock_Config(void);
 /* Private user code ---------------------------------------------------------*/
 /* USER CODE BEGIN 0 */
 
+unsigned char *mpl_key = (unsigned char*)"eMPL 5.1"; // 必须是固定字符串，不可更改，不然报 Not authorized
 /* USER CODE END 0 */
 
 /**
@@ -71,6 +72,9 @@ int main(void)
    short Gyro[3]={0};
    float Temp=0.0;
    u8 t;
+   long dataBuf[9];
+   unsigned long timestamp;
+   double yaw,pitch,roll;
   /* USER CODE END 1 */
 
   /* MCU Configuration--------------------------------------------------------*/
@@ -94,13 +98,24 @@ int main(void)
   MX_I2C1_Init();
   MX_USART1_UART_Init();
   /* USER CODE BEGIN 2 */
-
+    /*
+    // MPU6050普通读取，读取原始数据
     // mpu 初始化
     if(mpu_init()){
         printf("mpu init error.");
     }else{
         printf("mpu init ok.");
     }
+     // 读取陀螺、加计、温度
+    mpu_get_gyro(&Gyro[0], &Gyro[1], &Gyro[2]);
+    mpu_get_acc(&Acel[0], &Acel[1], &Acel[2]);
+    Temp = mpu_get_temperature();
+    printf("%10d,%10d,%10d,%10d,%10d,%10d,%10f\n", Gyro[0], Gyro[1], Gyro[2], Acel[0], Acel[1], Acel[2], Temp);
+      
+    */
+    
+    // MPL初始化
+    mpl_moudle_init();
   
   /* USER CODE END 2 */
 
@@ -112,12 +127,18 @@ int main(void)
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
-    // 读取陀螺、加计、温度
-    mpu_get_gyro(&Gyro[0], &Gyro[1], &Gyro[2]);
-    mpu_get_acc(&Acel[0], &Acel[1], &Acel[2]);
-    Temp = mpu_get_temperature();
-    printf("%10d,%10d,%10d,%10d,%10d,%10d,%10f\n", Gyro[0], Gyro[1], Gyro[2], Acel[0], Acel[1], Acel[2], Temp);
       
+    get_tick_count(&timestamp);
+    mpu_module_sampling(); // 从MPU的FIFO读取数据
+    inv_get_sensor_type_euler(dataBuf, &t, (inv_time_t*)timestamp);
+    if(t)
+    {
+        pitch = 1.0f*dataBuf[0]/65536.f;					
+        roll  = 1.0f*dataBuf[1]/65536.f;
+        yaw 	= 1.0f*dataBuf[2]/65536.f;
+        printf("%ld.\tyaw:%10.6lf    pitch:%10.6lf    roll:%10.6lf\r\n", timestamp, yaw, pitch, roll);
+    }
+
     HAL_Delay(500);
     
   }

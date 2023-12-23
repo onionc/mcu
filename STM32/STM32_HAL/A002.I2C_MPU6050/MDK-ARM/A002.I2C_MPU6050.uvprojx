@@ -14,7 +14,7 @@
         <TargetCommonOption>
           <Device>STM32F407VETx</Device>
           <Vendor>STMicroelectronics</Vendor>
-          <PackID>Keil.STM32F4xx_DFP.2.12.0</PackID>
+          <PackID>Keil.STM32F4xx_DFP.2.9.0</PackID>
           <PackURL>http://www.keil.com/pack</PackURL>
           <Cpu>IRAM(0x20000000-0x2001FFFF) IRAM2(0x10000000-0x1000FFFF) IROM(0x8000000-0x807FFFF)  CLOCK(25000000) FPU2 CPUTYPE("Cortex-M4")</Cpu>
           <FlashUtilSpec></FlashUtilSpec>
@@ -47,7 +47,7 @@
             <InvalidFlash>1</InvalidFlash>
           </TargetStatus>
           <OutputDirectory>A002.I2C_MPU6050\</OutputDirectory>
-          <OutputName>A002.I2C_MPU6050</OutputName>
+          <OutputName>A002.I2C_MPU6050.bin</OutputName>
           <CreateExecutable>1</CreateExecutable>
           <CreateLib>0</CreateLib>
           <CreateHexFile>1</CreateHexFile>
@@ -347,7 +347,7 @@
           </ArmAdsMisc>
           <Cads>
             <interw>1</interw>
-            <Optim>4</Optim>
+            <Optim>1</Optim>
             <oTime>0</oTime>
             <SplitLS>0</SplitLS>
             <OneElfS>1</OneElfS>
@@ -362,10 +362,10 @@
             <uC99>1</uC99>
             <useXO>0</useXO>
             <VariousControls>
-              <MiscControls></MiscControls>
-              <Define>USE_HAL_DRIVER,STM32F407xx</Define>
+              <MiscControls>--diag_suppress=1</MiscControls>
+              <Define>USE_HAL_DRIVER,STM32F407xx,USE_DMP,EMPL_TARGET_STM32F4,MPU6050,MPL_LOG_NDEBUG=1,EMPL</Define>
               <Undefine></Undefine>
-              <IncludePath>../Core/Inc; ../Drivers/STM32F4xx_HAL_Driver/Inc; ../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy; ../Drivers/CMSIS/Device/ST/STM32F4xx/Include; ../Drivers/CMSIS/Include;../Drivers/MPU6050/Inc</IncludePath>
+              <IncludePath>../Core/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc;../Drivers/STM32F4xx_HAL_Driver/Inc/Legacy;../Drivers/CMSIS/Device/ST/STM32F4xx/Include;../Drivers/CMSIS/Include;../Drivers/MPU6050/Inc;..\Drivers\MPU6050\MPL\driver\eMPL;..\Drivers\MPU6050\MPL\driver\include;..\Drivers\MPU6050\MPL\driver\stm32L;..\Drivers\MPU6050\MPL\eMPL-hal;..\Drivers\MPU6050\MPL\mllite;..\Drivers\MPU6050\MPL\mpl</IncludePath>
             </VariousControls>
           </Cads>
           <Aads>
@@ -422,6 +422,76 @@
               <FileName>MPU6050.c</FileName>
               <FileType>1</FileType>
               <FilePath>..\Drivers\MPU6050\Src\MPU6050.c</FilePath>
+            </File>
+            <File>
+              <FileName>inv_mpu.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\driver\eMPL\inv_mpu.c</FilePath>
+            </File>
+            <File>
+              <FileName>inv_mpu_dmp_motion_driver.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\driver\eMPL\inv_mpu_dmp_motion_driver.c</FilePath>
+            </File>
+            <File>
+              <FileName>log_stm32.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\driver\stm32L\log_stm32.c</FilePath>
+            </File>
+            <File>
+              <FileName>eMPL_outputs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\eMPL-hal\eMPL_outputs.c</FilePath>
+            </File>
+            <File>
+              <FileName>data_builder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\data_builder.c</FilePath>
+            </File>
+            <File>
+              <FileName>hal_outputs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\hal_outputs.c</FilePath>
+            </File>
+            <File>
+              <FileName>message_layer.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\message_layer.c</FilePath>
+            </File>
+            <File>
+              <FileName>ml_math_func.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\ml_math_func.c</FilePath>
+            </File>
+            <File>
+              <FileName>mlmath.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\mlmath.c</FilePath>
+            </File>
+            <File>
+              <FileName>mpl.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\mpl.c</FilePath>
+            </File>
+            <File>
+              <FileName>results_holder.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\results_holder.c</FilePath>
+            </File>
+            <File>
+              <FileName>start_manager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\start_manager.c</FilePath>
+            </File>
+            <File>
+              <FileName>storage_manager.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mllite\storage_manager.c</FilePath>
+            </File>
+            <File>
+              <FileName>libmpllib.lib</FileName>
+              <FileType>4</FileType>
+              <FilePath>..\Drivers\MPU6050\MPL\mpl\libmpllib.lib</FilePath>
             </File>
           </Files>
         </Group>
