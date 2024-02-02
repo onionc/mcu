@@ -26,4 +26,18 @@ typedef unsigned long UBaseType_t;
     #define portMAX_DELAY ( TickType_t ) 0xffffffffUL
 #endif
 
+/******* 任务切换 *******/
+// 中断控制状态寄存器
+// BIT 28: PendSV 悬起位
+#define portNVIC_INT_CTRL_REG       (*((volatile uint32_t *) 0xE000ED04)) 
+#define portNVIC_PENDSVSET_BIT      (1UL<<28UL)
+#define portSY_FULL_READ_WRITE      (15)
+#define portYIELD()                                 \
+{                                                   \
+    /* 触发PendSV，产生上下文切换 */                  \
+    portNVIC_INT_CTRL_REG = portNVIC_PENDSVSET_BIT; \
+    __dsb( portSY_FULL_READ_WRITE );                \
+    __dsb( portSY_FULL_READ_WRITE );                \
+}
+
 #endif /* PORTMACRO_H */
