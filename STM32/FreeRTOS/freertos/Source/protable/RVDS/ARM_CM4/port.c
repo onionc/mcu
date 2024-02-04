@@ -24,6 +24,7 @@ StackType_t *pxPortInitialiseStack(StackType_t *pxTopOfStack, TaskFunction_t pxC
     pxTopOfStack--;
     *pxTopOfStack = (StackType_t) prvTaskExitError;
     pxTopOfStack -= 5; // R12, R3, R2 and R1 默认参数初始化为0
+    // R0 是任务参数地址
     *pxTopOfStack = (StackType_t) pvParameters;
     
     // 异常发生时，手动加载到CPU寄存器的内容
@@ -69,7 +70,7 @@ __asm void prvStartFirstTask(){
     nop
 }
 
-// 启动第一个任务
+// SVC中断服务
 __asm void vPortSVCHandler(void){
     extern pxCurrentTCB;
     
@@ -88,7 +89,7 @@ __asm void vPortSVCHandler(void){
     bx r14
 }
 
-// PendSV中断
+// PendSV中断服务
 __asm void xPortPendSVHandler(void){
     extern pxCurrentTCB;
     extern vTaskSwitchContext;

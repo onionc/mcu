@@ -32,7 +32,10 @@ BaseType_t xPortStartScheduler(void);
 // 开始运行，开始第一个任务
 void prvStartFirstTask(void);
 
-// 启动第一个任务
+// SVC中断服务
 void vPortSVCHandler(void);
+
+// PendSV中断服务
+void xPortPendSVHandler(void);
 
 #endif

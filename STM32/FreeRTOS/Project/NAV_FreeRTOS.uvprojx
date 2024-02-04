@@ -209,8 +209,8 @@
             <AdsLsun>1</AdsLsun>
             <AdsLven>1</AdsLven>
             <AdsLsxf>1</AdsLsxf>
-            <RvctClst>0</RvctClst>
-            <GenPPlst>0</GenPPlst>
+            <RvctClst>1</RvctClst>
+            <GenPPlst>1</GenPPlst>
             <AdsCpuType>"Cortex-M4"</AdsCpuType>
             <RvctDeviceName></RvctDeviceName>
             <mOS>0</mOS>
@@ -427,19 +427,24 @@
               <FilePath>..\freertos\Source\list.c</FilePath>
             </File>
             <File>
-              <FileName>list.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\freertos\Source\Include\list.h</FilePath>
+              <FileName>task.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\freertos\Source\task.c</FilePath>
             </File>
             <File>
-              <FileName>portmacro.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\freertos\Source\Include\portmacro.h</FilePath>
+              <FileName>FreeRTOS.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\freertos\Source\FreeRTOS.c</FilePath>
             </File>
             <File>
-              <FileName>FreeRTOSConfig.h</FileName>
-              <FileType>5</FileType>
-              <FilePath>..\freertos\Source\Include\FreeRTOSConfig.h</FilePath>
+              <FileName>projdefs.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\freertos\Source\projdefs.c</FilePath>
+            </File>
+            <File>
+              <FileName>port.c</FileName>
+              <FileType>1</FileType>
+              <FilePath>..\freertos\Source\protable\RVDS\ARM_CM4\port.c</FilePath>
             </File>
           </Files>
         </Group>
