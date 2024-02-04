@@ -1,6 +1,8 @@
 #ifndef FREERTOS_CONFIG_H
 #define FREERTOS_CONFIG_H
 
+#include <stdio.h>
+
 // 指定TickType_t类型，=1为16位，=0为32位
 #define configUSE_16_BIT_TICKS  0
 // 任务名称的长度
@@ -18,4 +20,9 @@
 #define xPortPendSVHandler      PendSV_Handler
 #define xPortSysTickHandler     SysTick_Handler
 #define vPortSVCHandler         SVC_Handler
+
+// 断言
+#define vAssertCalled(file, line) printf("Error: %s, %d\n", file, line)
+#define configASSERT(x) if((x)==0) vAssertCalled(__FILE__, __LINE__)
+
 #endif

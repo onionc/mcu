@@ -1,6 +1,10 @@
 
 #include "port.h"
 #include "task.h"
+#include "ARMCM4.h"
+
+// 临界段计数值
+static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 
 
 static void prvTaskExitError(void){
@@ -124,3 +128,23 @@ __asm void xPortPendSVHandler(void){
     nop
 }
 
+// 进入临界段
+void vPortEnterCritical(void){
+    portDISABLE_INTERRUPTS();
+    uxCriticalNesting++;
+    
+    if(uxCriticalNesting == 1){
+        configASSERT( (portNVIC_INT_CTRL_REG & portVECTACTIVE_MASK) == 0 );
+    }
+
+}
+
+
+// 退出临界段
+void vPortExitCritical(void){
+    configASSERT(uxCriticalNesting);
+    uxCriticalNesting--;
+    if(uxCriticalNesting==0){
+        portENABLE_INTERRUPTS();
+    }
+}

@@ -68,4 +68,16 @@ void vTaskStartScheduler(void);
 // 任务切换
 void vTaskSwitchContext(void);
     
+
+/************* 临界段相关定义 start *************/
+    
+// 进入临界段。不带中断保护版本，不能嵌套
+#define taskENTER_CRITICAL()    portENTER_CRITICAL()  
+// 进入临界段。带中断保护版本，可以嵌套
+#define taskENTER_CRITICAL_FROM_ISR()   portSET_INTERRUPT_MASK_FROM_ISR()
+// 退出临界段。不带中断保护版本，不能嵌套
+#define taskEXIT_CRITICAL()     portEXIT_CRITICAL()
+// 退出临界段。带中断保护版本，可以嵌套
+#define taskEXIT_CRITICAL_FROM_ISR(x)   portCLEAR_INTERRUPT_MASK_FROM_ISR(x)
+/************* 临界段相关定义 end   *************/
 #endif

@@ -17,6 +17,7 @@
 static void prvTaskExitError(void);
 
 
+
 /**
  * 初始化任务栈函数
  * @param pxTopOfStack 栈顶地址
@@ -37,5 +38,13 @@ void vPortSVCHandler(void);
 
 // PendSV中断服务
 void xPortPendSVHandler(void);
+
+
+
+// 临界段计数值
+static UBaseType_t uxCriticalNesting;
+
+/* Masks off all bits but the VECTACTIVE bits in the ICSR register. */
+#define portVECTACTIVE_MASK     ( 0xFFUL )
 
 #endif
