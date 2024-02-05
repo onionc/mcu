@@ -7,7 +7,7 @@ uint32_t flag1, flag2;
 // 任务控制块定义
 TaskHandle_t Task1_Handle;
 TaskHandle_t Task2_Handle;
-
+TaskHandle_t TaskIdle_Handle; // 空闲任务控制块
 
 
 
@@ -20,6 +20,7 @@ void delay(uint32_t count){
 // 任务1
 void Task1_Entry(void *p_arg){
     for(;;){
+        #if 0
         flag1 = 1;
         delay(100);
         flag1 = 0;
@@ -27,6 +28,12 @@ void Task1_Entry(void *p_arg){
         
         // 手动切换任务
         taskYIELD();
+        #else
+        flag1 = 1;
+        vTaskDelay(2);
+        flag1 = 0;
+        vTaskDelay(2);
+        #endif
         
     }
 }
@@ -34,6 +41,7 @@ void Task1_Entry(void *p_arg){
 // 任务2
 void Task2_Entry(void *p_arg){
     for(;;){
+        #if 0
         flag2 = 1;
         delay(100);
         flag2 = 0;
@@ -41,6 +49,19 @@ void Task2_Entry(void *p_arg){
         
         // 手动切换任务
         taskYIELD();
+        #else
+        flag2 = 1;
+        vTaskDelay(2);
+        flag2 = 0;
+        vTaskDelay(2);
+        #endif
+    }
+}
+
+// 空闲任务
+void prvIdleTask(void){
+    for(;;){
+    
     }
 }
 

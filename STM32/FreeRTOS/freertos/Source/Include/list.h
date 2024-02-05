@@ -79,7 +79,7 @@ typedef struct xLIST{
 #define listCURRENT_LIST_LENGTH( pxList )\
     ( (pxList)->uxNumberOfItems )
 
-// 获取链表第一个节点的拥有者，即TCB
+// 获取链表下一个节点的拥有者，即TCB
 #define listGET_OWNER_OF_NEXT_ENTRY( pxTCB, pxList )\
 {\
     List_t * const pxConstList = (pxList);          \
@@ -90,6 +90,8 @@ typedef struct xLIST{
     }\
     (pxTCB) = (pxConstList)->pxIndex->pvOwner; \
 }
+// 获取链表头节点的拥有者
+#define listGET_OWNER_OF_HEAD_ENTRY(pxList) ( (&((pxList)->xListEnd))->pxNext->pvOwner )
 
     
     

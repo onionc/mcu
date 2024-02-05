@@ -2,11 +2,12 @@
 #include "port.h"
 #include "task.h"
 #include "ARMCM4.h"
+#include "portmacro.h"
 
 // 临界段计数值
 static UBaseType_t uxCriticalNesting = 0xaaaaaaaa;
 
-
+// 任务异常退出函数
 static void prvTaskExitError(void){
     for(;;);
 }
@@ -44,6 +45,9 @@ BaseType_t xPortStartScheduler(void){
     // 配置 PendSV 和 SysTick 的中断优先级最低
     portNVIC_SYSPRI2_REG |= portNVIC_PENDSV_PRI;
     portNVIC_SYSPRI2_REG |= portNVIC_SYSTICK_PRI;
+    
+    // 初始化SysTick
+    vPortSetupTimerInterrupt();
     
     // 启动第一个任务，不再返回
     prvStartFirstTask();
@@ -148,3 +152,31 @@ void vPortExitCritical(void){
         portENABLE_INTERRUPTS();
     }
 }
+
+
+// SysTick 中断服务
+void xPortSysTickHandler(void){
+    // 关中断
+    portDISABLE_INTERRUPTS();
+    
+    // 更新系统时基
+    xTaskIncrementTick();
+    
+    // 开中断
+    portENABLE_INTERRUPTS();
+    
+}
+
+// SysTick 初始化函数
+void vPortSetupTimerInterrupt(void){
+    // 设置装载寄存器的值
+    portNVIC_SYSTICK_LOAD_REG = (configSYSTICK_CLOCK_HZ / configTICK_RATE_HZ) - 1; 
+    
+    // 使能定时器中断，使能定时器
+    portNVIC_SYSTICK_CTRL_REG = (
+        portNVIC_SYSTICK_CLK_BIT |
+        portNVIC_SYSTICK_INT_BIT | 
+        portNVIC_SYSTICK_ENABLE_BIT
+    );
+}
+
