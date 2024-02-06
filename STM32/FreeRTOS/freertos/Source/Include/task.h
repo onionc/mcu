@@ -38,6 +38,7 @@ extern TCB_t * pxCurrentTCB;
  * @param pcName 任务名称
  * @param ulStackDepth 任务栈大小
  * @parma pvParameters 任务形参
+ * @param uxPriority 任务优先级，数值越大，优先级越高
  * @param puxStackBuffer 任务栈起始地址
  * @param pxTaskBuffer 任务控制块指针
  * @return 
@@ -47,6 +48,7 @@ TaskHandle_t xTaskCreateStatic(
     const char* const pcName,
     const uint32_t ulStackDepth,
     void * const pvParameters, 
+    UBaseType_t uxPriority,
     StackType_t * const puxStackBuffer,
     TCB_t * const pxTaskBuffer
 );
@@ -56,6 +58,7 @@ static void prvInitialiseNewTask(
     const char* const pcName,
     const uint32_t ulStackDepth,
     void * const pvParameters,
+    UBaseType_t uxPriority,
     TaskHandle_t * const pxCreatedTask,
     TCB_t * pxNewTCB
 );
@@ -85,6 +88,7 @@ void vTaskSwitchContext(void);
 #define taskEXIT_CRITICAL()     portEXIT_CRITICAL()
 // 退出临界段。带中断保护版本，可以嵌套
 #define taskEXIT_CRITICAL_FROM_ISR(x)   portCLEAR_INTERRUPT_MASK_FROM_ISR(x)
+
 /************* 临界段相关定义 end   *************/
 
 // 获取空闲任务内存(栈和任务TCB）
@@ -101,5 +105,79 @@ void xTaskIncrementTick(void);
 
 // 空闲任务
 void prvIdleTask(void);
+// 空闲任务优先级
+#define taskIDLE_PRIORITY (0)
+
+/************* 多优先级相关定义 start *************/
+
+// 查找最高优先级的就绪任务（通用方法）
+#if ( configUSE_PORT_OPTIMISED_TASK_SELECTION == 0 )
+
+    // 获取并设置最高优先级，uxTopReadyPriority 存放的是最高优先级
+    #define taskRECORD_READY_PRIORITY(uxPriority)       \
+    {                                                   \
+        if( (uxPriority) > uxTopReadyPriority )         \
+        {                                               \
+            uxTopReadyPriority = (uxPriority);          \
+        }                                               \
+    }
+    
+    // 选择最高优先级任务
+    #define taskSELECT_HIGHEST_PRIORITY_TASK()          \
+    {                                                   \
+        UBaseType_t uxTopPriority = uxTopReadyPriority; \
+        /* 寻找就绪列表中最高优先级的队列 */              \
+        while(listLIST_IS_EMPTY(&(pxReadyTasksLists[uxTopPriority])))   \
+        {                                               \
+            --uxTopPriority;                            \
+        }                                               \
+        /* 获取优先级最高任务的TCB，更新到 pxCurrentTCB */         \
+        listGET_OWNER_OF_NEXT_ENTRY(pxCurrentTCB, &(pxReadyTasksLists[uxTopPriority]));  \
+        uxTopReadyPriority = uxTopPriority;             \
+    }
+    
+    // 重置最高优先级，属于选择优化的宏定义，这里为空
+    #define taskRESET_READY_PRIORITY(uxPriority) 
+
+// 查找最高优先级的就绪任务（根据处理器架构优化后的方法）
+#else
+    // 设置最高优先级
+    #define taskRECORD_READY_PRIORITY(uxPriority)       \
+        portRECORD_READY_PRIORITY(uxPriority, uxTopReadyPriority)
+    
+    // 选择最高优先级任务
+    #define taskSELECT_HIGHEST_PRIORITY_TASK()          \
+    {                                                   \
+        UBaseType_t uxTopPriority;                      \
+        /* 寻找最高优先级 */                              \
+        portGET_HIGHEST_PRIORITY(uxTopPriority, uxTopReadyPriority);    \
+        /* 获取优先级最高任务的TCB，更新到 pxCurrentTCB */ \
+        listGET_OWNER_OF_NEXT_ENTRY(pxCurrentTCB, &(pxReadyTasksLists[uxTopPriority])); \
+    }
+    
+    // 重置最高优先级
+    #if 0
+        #define taskRESET_READY_PRIORITY(uxPriority)        \
+        {   \
+            if(listCURRENT_LIST_LENGTH(&(pxReadyTasksLists[(uxPriority)])) == 0){   \
+                portRESET_READY_PRIORITY((uxPriority), uxTopReadyPriority);         \
+            }                                                                       \
+        }
+    #else
+        #define taskRESET_READY_PRIORITY(uxPriority)   \
+        {                                              \
+            portRESET_READY_PRIORITY((uxPriority), uxTopReadyPriority); \
+        }
+    
+    #endif
+#endif
+
+// 将任务添加到就绪列表
+#define prvAddTaskToReadyList(pxTCB)                    \
+        taskRECORD_READY_PRIORITY((pxTCB)->uxPriority); \
+        vListInsertEnd( &(pxReadyTasksLists[(pxTCB)->uxPriority]),  &( (pxTCB)->xStateListItem) );
+
+/************* 多优先级相关定义   end *************/
+
 
 #endif

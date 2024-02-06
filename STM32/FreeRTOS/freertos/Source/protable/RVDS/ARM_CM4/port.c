@@ -49,6 +49,8 @@ BaseType_t xPortStartScheduler(void){
     // 初始化SysTick
     vPortSetupTimerInterrupt();
     
+    uxCriticalNesting = 0;
+    
     // 启动第一个任务，不再返回
     prvStartFirstTask();
     
@@ -164,7 +166,6 @@ void xPortSysTickHandler(void){
     
     // 开中断
     portENABLE_INTERRUPTS();
-    
 }
 
 // SysTick 初始化函数

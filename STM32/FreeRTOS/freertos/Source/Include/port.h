@@ -14,9 +14,6 @@
 #define portNVIC_PENDSV_PRI     ( ((uint32_t)configKERNEL_INTERRUPT_PRIORITY)<<16UL )  // Bits 23:16 PRI_14[7:0]: Priority of system handler 14, PendSV
 #define portNVIC_SYSTICK_PRI    ( ((uint32_t)configKERNEL_INTERRUPT_PRIORITY)<<24UL )  // Bits 31:24 PRI_15[7:0]: Priority of system handler 15, SysTick exception
 
-// 任务异常退出函数
-static void prvTaskExitError(void);
-
 /**
  * 初始化任务栈函数
  * @param pxTopOfStack 栈顶地址
@@ -38,10 +35,19 @@ void vPortSVCHandler(void);
 // PendSV中断服务
 void xPortPendSVHandler(void);
 
+// 进入临界段
+void vPortEnterCritical(void);
+
+// 退出临界段
+void vPortExitCritical(void);
+
+// SysTick 中断服务
+void xPortSysTickHandler(void);
+
+// SysTick 初始化函数
+void vPortSetupTimerInterrupt(void);
 
 
-// 临界段计数值
-static UBaseType_t uxCriticalNesting;
 
 /* Masks off all bits but the VECTACTIVE bits in the ICSR register. */
 #define portVECTACTIVE_MASK     ( 0xFFUL )

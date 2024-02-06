@@ -67,25 +67,22 @@ void prvIdleTask(void){
 
 int main(void){
     
-    // 初始化就绪列表
-    prvInitialiseTaskLists();
     // 创建任务
     Task1_Handle = xTaskCreateStatic(   (TaskFunction_t) Task1_Entry,
                                         (char*) "Task1",
                                         (uint32_t) TASK1_STACK_SIZE,
                                         (void *) NULL,
+                                        1,
                                         (StackType_t *) Task1Stack,
                                         (TCB_t *) &Task1TCB);
-    // 将任务添加到就绪列表
-    vListInsertEnd(&(pxReadyTasksLists[1]), &((&Task1TCB)->xStateListItem) );
-    
+
     Task2_Handle = xTaskCreateStatic(   (TaskFunction_t) Task2_Entry,
                                         (char*) "Task2",
                                         (uint32_t) TASK2_STACK_SIZE,
                                         (void *) NULL,
+                                        2,
                                         (StackType_t *) Task2Stack,
                                         (TCB_t *) &Task2TCB);
-    vListInsertEnd(&(pxReadyTasksLists[2]), &((&Task2TCB)->xStateListItem) );
     
     // 启动调度器，开始多任务调度
     vTaskStartScheduler();

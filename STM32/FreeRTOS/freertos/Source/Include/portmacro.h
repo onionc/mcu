@@ -6,6 +6,7 @@
 #include "FreeRTOSConfig.h"
 
 
+
 /* 数据类型重定义 */
 #define portCHAR char
 #define portFLOAT float
@@ -34,6 +35,10 @@ typedef unsigned long UBaseType_t;
     #define portFORCE_INLINE __forceinline
 #endif
 
+// 查找最高优先级的就绪任务
+#ifndef configUSE_PORT_OPTIMISED_TASK_SELECTION
+    #define configUSE_PORT_OPTIMISED_TASK_SELECTION 1
+#endif
 
 
 /******* 任务切换 *******/
@@ -107,4 +112,19 @@ static portFORCE_INLINE void vPortSetBASEPRI(uint32_t ulBASEPRI){
 
 /************* 临界段相关 end   *************/
 
+
+/************* 多优先级相关定义   start *************/
+// 设置优先级位
+#define portRECORD_READY_PRIORITY(uxPriority, uxReadyPriorities)    \
+    (uxReadyPriorities) |= (1UL << (uxPriority))
+
+// 重置优先级位
+#define portRESET_READY_PRIORITY(uxPriority, uxReadyPriorities)     \
+    (uxReadyPriorities) &= ~(1UL << (uxPriority))
+
+// 寻找高优先级（通过计算前导零个数指令CLZ实现，计算uxReadyPriorities之前0的个数找到最高优先级）
+#define portGET_HIGHEST_PRIORITY( uxTopPriority, uxReadyPriorities) \
+    uxTopPriority = (31UL - (uint32_t)__clz((uxReadyPriorities)))
+
+/************* 多优先级相关定义   end *************/
 #endif /* PORTMACRO_H */
