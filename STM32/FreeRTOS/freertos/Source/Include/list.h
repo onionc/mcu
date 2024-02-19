@@ -85,7 +85,7 @@ typedef struct xLIST{
     List_t * const pxConstList = (pxList);          \
     /*节点索引指向链表第一个节点*/                   \
     (pxConstList)->pxIndex = (pxConstList)->pxIndex->pxNext;    \
-    if((void*)(pxConstList)->pxIndex == (void *)&((pxConstList)->xListEnd));{   \
+    if((void*)(pxConstList)->pxIndex == (void *)&((pxConstList)->xListEnd)){   \
         (pxConstList)->pxIndex = (pxConstList)->pxIndex->pxNext;                \
     }\
     (pxTCB) = (pxConstList)->pxIndex->pvOwner; \
