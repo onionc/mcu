@@ -29,6 +29,9 @@ extern TaskHandle_t TaskIdle_Handle;
 // 指向当前任务的指针
 extern TCB_t * pxCurrentTCB; 
 
+// 溢出计数
+extern volatile BaseType_t xNumOfOverflows;
+
 // 任务切换方法
 #define taskYIELD()     portYIELD()
 
@@ -156,7 +159,7 @@ void prvIdleTask(void);
     }
     
     // 重置最高优先级
-    #if 0
+    #if 1
         #define taskRESET_READY_PRIORITY(uxPriority)        \
         {   \
             if(listCURRENT_LIST_LENGTH(&(pxReadyTasksLists[(uxPriority)])) == 0){   \
@@ -177,6 +180,17 @@ void prvIdleTask(void);
         taskRECORD_READY_PRIORITY((pxTCB)->uxPriority); \
         vListInsertEnd( &(pxReadyTasksLists[(pxTCB)->uxPriority]),  &( (pxTCB)->xStateListItem) );
 
+// 切换延时列表
+#define taskSWITCH_DELAYED_LISTS()\
+{\
+    List_t *pxTemp;                                     \
+    pxTemp = pxDelayedTaskList;                         \
+    pxDelayedTaskList = pxOverflowDelayedTaskList;      \
+    pxOverflowDelayedTaskList = pxTemp;                 \
+    xNumOfOverflows++;                                  \
+    prvResetNextTaskUnblockTime();                      \
+}
+    
 /************* 多优先级相关定义   end *************/
 
 
