@@ -32,4 +32,10 @@
 #define configCPU_CLOCK_HZ  (25000000UL)  // 系统时钟 25MHz
 #define configTICK_RATE_HZ  ((TickType_t) 100) // SysTick每秒中断（100Hz则为10ms/次）
 
+// 任务就绪且就绪任务优先级高时，执行任务切换
+#define configUSE_PREEMPTION 1
+// 时间片
+#ifndef configUSE_TIME_SLICING
+    #define configUSE_TIME_SLICING 1
+#endif
 #endif

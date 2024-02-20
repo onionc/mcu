@@ -6,11 +6,13 @@
 // 定义任务栈
 StackType_t Task1Stack[TASK1_STACK_SIZE];
 StackType_t Task2Stack[TASK2_STACK_SIZE];
+StackType_t Task3Stack[TASK3_STACK_SIZE];
 StackType_t IdleTaskStack[configMINIMAL_STACK_SIZE];
 
 // 任务控制块
 TCB_t Task1TCB;
 TCB_t Task2TCB;
+TCB_t Task3TCB;
 TCB_t IdleTaskTCB; // 空闲任务控制块
 
 // 指向当前任务的指针
@@ -330,9 +332,10 @@ void vTaskDelay(const TickType_t xTicksToDelay){
 }
 
 // 更新系统时基
-void xTaskIncrementTick(void){
+BaseType_t xTaskIncrementTick(void){
     TCB_t *pxTCB = NULL;
     TickType_t xItemValue;
+    BaseType_t xSwitchRequired = pdFALSE; // 切换指示变量， 为pdTRUE时，进行一次任务切换
     
     // 更新系统时基计数器 xTickCount
     const TickType_t xConstTickCount = ++xTickCount;
@@ -367,12 +370,27 @@ void xTaskIncrementTick(void){
                 
                 // 将解除等待的任务添加到就绪列表
                 prvAddTaskToReadyList(pxTCB);
+                
+                #if( configUSE_PREEMPTION == 1)
+                {
+                    if(pxTCB->uxPriority >= pxCurrentTCB->uxPriority){
+                        xSwitchRequired = pdTRUE;
+                    }
+                }
+                #endif
             }
         }
     }
     
+    #if( (configUSE_PREEMPTION == 1) && ( configUSE_TIME_SLICING == 1) )
+    {
+        if(listCURRENT_LIST_LENGTH( &(pxReadyTasksLists[pxCurrentTCB->uxPriority])) > 1){
+            xSwitchRequired = pdTRUE;
+        }
+    }
+    #endif
     // 任务切换
-    portYIELD();
+    // portYIELD();
 }
 
 

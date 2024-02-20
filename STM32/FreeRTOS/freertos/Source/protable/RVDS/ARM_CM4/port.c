@@ -161,8 +161,12 @@ void xPortSysTickHandler(void){
     // 关中断
     portDISABLE_INTERRUPTS();
     
+    
     // 更新系统时基
-    xTaskIncrementTick();
+    if(xTaskIncrementTick() != pdFALSE){
+        // 任务切换
+        taskYIELD();
+    }
     
     // 开中断
     portENABLE_INTERRUPTS();

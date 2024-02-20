@@ -16,12 +16,16 @@ extern StackType_t Task1Stack[TASK1_STACK_SIZE];
 #define TASK2_STACK_SIZE    128
 extern StackType_t Task2Stack[TASK2_STACK_SIZE];
 
+#define TASK3_STACK_SIZE    128
+extern StackType_t Task3Stack[TASK3_STACK_SIZE];
+
 // 空闲任务栈
 extern StackType_t IdleTaskStack[configMINIMAL_STACK_SIZE];
 
 // 任务控制块
 extern TCB_t Task1TCB;
 extern TCB_t Task2TCB;
+extern TCB_t Task3TCB;
 extern TCB_t IdleTaskTCB; // 空闲任务控制块
 
 extern TaskHandle_t TaskIdle_Handle;
@@ -104,7 +108,7 @@ void vTaskDelay(const TickType_t xTicksToDelay);
 static volatile TickType_t xTickCount;
 
 // 更新系统时基
-void xTaskIncrementTick(void);
+BaseType_t xTaskIncrementTick(void);
 
 // 空闲任务
 void prvIdleTask(void);
@@ -158,7 +162,7 @@ void prvIdleTask(void);
         listGET_OWNER_OF_NEXT_ENTRY(pxCurrentTCB, &(pxReadyTasksLists[uxTopPriority])); \
     }
     
-    // 重置最高优先级
+    // 重置优先级
     #if 1
         #define taskRESET_READY_PRIORITY(uxPriority)        \
         {   \
