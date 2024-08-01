@@ -95,21 +95,16 @@ int main(void)
 
   /* Infinite loop */
   /* USER CODE BEGIN WHILE */
-  char x = 0;
+  OLED_ShowString(10,10,"test", 12);
+  // ¸üÐÂÏÔ´æµ½LCD
+  OLED_Refresh_Gram();
   while (1)
   {
     /* USER CODE END WHILE */
 
     /* USER CODE BEGIN 3 */
     
-      /*
-      OLED_RST(x);
-      OLED_CS(x);
-      OLED_DC(x);	 */
 
-
-      x^=1;
-      printf("x=%x", x);
     HAL_Delay(2000);
   }
   /* USER CODE END 3 */

@@ -1,7 +1,7 @@
 #ifndef __OLED_H__
 #define __OLED_H__
 
-#include "main.h"
+
 #include "spi.h"
 
 /****
@@ -36,5 +36,34 @@ void OLED_Refresh_Gram(void);
 
 // SSD1306 初始化
 void OLED_Init(void);
+
+/**
+ * 显示字符串
+ * x,y:起点坐标  
+ * size:字体大小 
+ * *p:字符串起始地址 
+ */
+void OLED_ShowString(uint8_t x,uint8_t y,const uint8_t *p,uint8_t size);
+
+
+/**
+ 在指定位置显示一个字符,包括部分字符
+ * x:0~127
+ * y:0~63
+ * mode:0,反白显示;1,正常显示
+ * size:选择字体 12 
+ */
+void OLED_ShowChar(uint8_t x,uint8_t y,uint8_t chr,uint8_t size,uint8_t mode);
+
+/**
+ * 画点 
+ * x:0~127
+ * y:0~63
+ * t:1 填充 0,清空
+ */
+void OLED_DrawPoint(uint8_t x,uint8_t y,uint8_t t);
+
+//12*12 ASCII字符集点阵
+extern unsigned char asc2_1206[95][12];
 
 #endif
