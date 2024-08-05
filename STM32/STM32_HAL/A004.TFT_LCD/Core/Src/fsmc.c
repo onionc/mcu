@@ -62,16 +62,16 @@ void MX_FSMC_Init(void)
   /* Timing */
   Timing.AddressSetupTime = 15;
   Timing.AddressHoldTime = 15;
-  Timing.DataSetupTime = 255;
-  Timing.BusTurnAroundDuration = 15;
+  Timing.DataSetupTime = 200;
+  Timing.BusTurnAroundDuration = 0;
   Timing.CLKDivision = 16;
   Timing.DataLatency = 17;
-  Timing.AccessMode = FSMC_ACCESS_MODE_A;
+  Timing.AccessMode = FSMC_ACCESS_MODE_D;
   /* ExtTiming */
   ExtTiming.AddressSetupTime = 15;
   ExtTiming.AddressHoldTime = 15;
-  ExtTiming.DataSetupTime = 255;
-  ExtTiming.BusTurnAroundDuration = 15;
+  ExtTiming.DataSetupTime = 200;
+  ExtTiming.BusTurnAroundDuration = 0;
   ExtTiming.CLKDivision = 16;
   ExtTiming.DataLatency = 17;
   ExtTiming.AccessMode = FSMC_ACCESS_MODE_A;
@@ -114,7 +114,7 @@ static void HAL_FSMC_MspInit(void){
   PD8   ------> FSMC_D13
   PD9   ------> FSMC_D14
   PD10   ------> FSMC_D15
-  PD11   ------> FSMC_A16
+  PD13   ------> FSMC_A18
   PD14   ------> FSMC_D0
   PD15   ------> FSMC_D1
   PD0   ------> FSMC_D2
@@ -135,7 +135,7 @@ static void HAL_FSMC_MspInit(void){
   HAL_GPIO_Init(GPIOE, &GPIO_InitStruct);
 
   /* GPIO_InitStruct */
-  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
+  GPIO_InitStruct.Pin = GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_13
                           |GPIO_PIN_14|GPIO_PIN_15|GPIO_PIN_0|GPIO_PIN_1
                           |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_7;
   GPIO_InitStruct.Mode = GPIO_MODE_AF_PP;
@@ -186,7 +186,7 @@ static void HAL_FSMC_MspDeInit(void){
   PD8   ------> FSMC_D13
   PD9   ------> FSMC_D14
   PD10   ------> FSMC_D15
-  PD11   ------> FSMC_A16
+  PD13   ------> FSMC_A18
   PD14   ------> FSMC_D0
   PD15   ------> FSMC_D1
   PD0   ------> FSMC_D2
@@ -200,7 +200,7 @@ static void HAL_FSMC_MspDeInit(void){
                           |GPIO_PIN_11|GPIO_PIN_12|GPIO_PIN_13|GPIO_PIN_14
                           |GPIO_PIN_15);
 
-  HAL_GPIO_DeInit(GPIOD, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_11
+  HAL_GPIO_DeInit(GPIOD, GPIO_PIN_8|GPIO_PIN_9|GPIO_PIN_10|GPIO_PIN_13
                           |GPIO_PIN_14|GPIO_PIN_15|GPIO_PIN_0|GPIO_PIN_1
                           |GPIO_PIN_4|GPIO_PIN_5|GPIO_PIN_7);
 

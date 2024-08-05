@@ -24,7 +24,7 @@
 
 /* Private includes ----------------------------------------------------------*/
 /* USER CODE BEGIN Includes */
-
+#include "bsp_ILI3941V_tftlcd.h"
 /* USER CODE END Includes */
 
 /* Private typedef -----------------------------------------------------------*/
@@ -88,7 +88,18 @@ int main(void)
   MX_GPIO_Init();
   MX_FSMC_Init();
   /* USER CODE BEGIN 2 */
+  LCD_init();
+  HAL_Delay(1000);
 
+  show_color();
+  HAL_Delay(5000);
+  /*
+  	 write_data16(0xf800);//display red 
+
+	 write_data16(0x07e0);//display green
+
+     write_data16(0x001f);//display blue
+     */
   /* USER CODE END 2 */
 
   /* Infinite loop */
@@ -122,8 +133,8 @@ void SystemClock_Config(void)
   RCC_OscInitStruct.HSEState = RCC_HSE_ON;
   RCC_OscInitStruct.PLL.PLLState = RCC_PLL_ON;
   RCC_OscInitStruct.PLL.PLLSource = RCC_PLLSOURCE_HSE;
-  RCC_OscInitStruct.PLL.PLLM = 25;
-  RCC_OscInitStruct.PLL.PLLN = 336;
+  RCC_OscInitStruct.PLL.PLLM = 4;
+  RCC_OscInitStruct.PLL.PLLN = 168;
   RCC_OscInitStruct.PLL.PLLP = RCC_PLLP_DIV2;
   RCC_OscInitStruct.PLL.PLLQ = 4;
   if (HAL_RCC_OscConfig(&RCC_OscInitStruct) != HAL_OK)
