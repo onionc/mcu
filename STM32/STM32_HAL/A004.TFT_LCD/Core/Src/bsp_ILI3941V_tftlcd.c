@@ -149,7 +149,7 @@ void LCD_init(void)
 * @param  usHeight ：窗口的高度
 * @retval 无
 */
-void OpenWindow ( uint16_t usX, uint16_t usY,
+void areaSet ( uint16_t usX, uint16_t usY,
 uint16_t usWidth, uint16_t usHeight )
 {
     write_comm8 ( 0x2A );          /* 设置X坐标 */
@@ -163,24 +163,26 @@ uint16_t usWidth, uint16_t usHeight )
     write_data8 ( usY & 0xff  );
     write_data8( ( usY + usHeight - 1 ) >> 8 );
     write_data8 ( ( usY + usHeight - 1) & 0xff );
+    
+    write_comm8(0x2C); // 填充像素
 }
 
 // 全屏区域设置 240*320
-void areaset(void)
+void fullAreaSet(void)
 {
-write_comm8(0x2A);   
-write_data8(0x00);
-write_data8(0x00);
-write_data8(0x00);
-write_data8(0xEF);
- 
-write_comm8(0x2B);   
-write_data8(0x00);
-write_data8(0x00);
-write_data8(0x01);
-write_data8(0x3F);
-       
-write_comm8(0x2C);
+    write_comm8(0x2A);   
+    write_data8(0x00);
+    write_data8(0x00);
+    write_data8(0x00);
+    write_data8(0xEF);
+     
+    write_comm8(0x2B);   
+    write_data8(0x00);
+    write_data8(0x00);
+    write_data8(0x01);
+    write_data8(0x3F);
+           
+    write_comm8(0x2C);
  }
 
 /**
@@ -205,13 +207,43 @@ void show_color()
 {
  int i,j,k,n;
  unsigned char picH,picL;
- areaset();
- for(n=0;n<4;n++)
-  { k=0;
-   for(i=0;i<240;i++)
-   for(j=0;j<80;j++)
-    {
-     write_data16(0xf800);
-     }
-   }
+
+    
+    /*
+    fullAreaSet();
+    for(n=0;n<4;n++){ 
+        k=0;
+        for(i=0;i<240;i++)
+        for(j=0;j<80;j++)
+        {
+            write_data16(0xf800);
+        }
+   }*/
+    
+    areaSet(0,0,240,80);
+    for (i=0;i<320;i++){
+        for (j=0;j<80;j++)
+            write_data16(0xf800); 
+    }
+    
+    areaSet(0,80,240,80);
+    for (i=0;i<320;i++){
+        for (j=0;j<80;j++)
+            write_data16(0x07e0); 
+    }
+    
+    areaSet(0,160,240,80);
+    for (i=0;i<320;i++){
+        for (j=0;j<80;j++)
+            write_data16(0x001f); 
+        
+    }
+    
+    areaSet(0,160+80,240,80);
+    for (i=0;i<320;i++){
+        for (j=0;j<80;j++)
+            write_data16(0x07e0); 
+        
+    }
 }
+

@@ -33,10 +33,13 @@ void LcdWriteData(uint16_t udata);
 // 初始化
 void LCD_init(void);
 
-void OpenWindow ( uint16_t usX, uint16_t usY, uint16_t usWidth, uint16_t usHeight );
 // 全屏区域设置 240*320
-void areaset(void);
- void  FillColor ( uint32_t ulAmout_Point, uint16_t usColor );
+void fullAreaSet(void);
+
+// 区域设置
+void areaSet ( uint16_t usX, uint16_t usY, uint16_t usWidth, uint16_t usHeight );
+
+void  FillColor ( uint32_t ulAmout_Point, uint16_t usColor );
 
 void show_color();
 
